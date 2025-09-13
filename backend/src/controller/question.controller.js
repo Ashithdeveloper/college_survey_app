@@ -21,9 +21,9 @@ export const generatequestion = async (collegename) => {
       throw new Error("Questions already generated for this college");
 
     const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditions for the questions are:
-1. The questions should be in the format of questions and options rather than the last question should be the answer by themselves and the last question be sharing their own feelings.
-2. The questions must be given in the format of JSON and if a question is answered then the next question will be related to the answer of the question answered specifically that if a question is answered it will jump to its related question which will answer the previous question ("Notice the questions must be of jumped that means it must move from one place to another question. Eg: If first question is answered as option 2 then the question related to the options will be in the fourth question it will skip the second and third question.").
-3. The question must take the survey of their mental feelings (or) situations, their skill-development supports, placements percentage and their training systematics and skill based support regarding to their college.`;
+      1. The questions should be in the format of questions and options rather than the last question should be the answer by themselves and the last question be sharing their own feelings.
+      2. The questions must be given in the format of JSON and if a question is answered then the next question will be related to the answer of the question answered specifically that if a question is answered it will jump to its related question which will answer the previous question ("Notice the questions must be of jumped that means it must move from one place to another question. Eg: If first question is answered as option 2 then the question related to the options will be in the fourth question it will skip the second and third question.").
+      3. The question must take the survey of their mental feelings (or) situations, their skill-development supports, placements percentage and their training systematics and skill based support regarding to their college.`;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent({
@@ -108,9 +108,7 @@ export const getquestion = async (req, res) => {
   }
 };
 
-/**
- * Save a student's survey answers
- */
+
 export const saveanswer = async (req, res) => {
   try {
     const { answers, collegename } = req.body;
@@ -164,7 +162,7 @@ export const saveanswer = async (req, res) => {
     }
 
     const newAnswer = new Answer({
-      userId: user._id, // keep as ObjectId
+      userId: user._id, 
       collegename: normalizedCollegeName,
       answers,
     });
@@ -186,9 +184,6 @@ export const saveanswer = async (req, res) => {
   }
 };
 
-/**
- * Generate result ratings from all collected answers
- */
 export const getresult = async (req, res) => {
   try {
     const allAnswers = await Answer.find();
@@ -228,7 +223,6 @@ Provide the output as JSON in the following format:
     let aiResponseText = result.response.text();
     console.log("AI Raw Response:", aiResponseText);
 
-    // Strip markdown fences
     aiResponseText = aiResponseText.replace(/```json|```/g, "").trim();
 
     const firstBrace = aiResponseText.indexOf("{");
