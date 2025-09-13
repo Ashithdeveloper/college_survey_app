@@ -18,7 +18,7 @@ const answerschema = new mongoose.Schema({
   ],
   createdAt: {
     type: Date,
-    default: Date.now(), // Automatically set when a document is created
+    default: Date.now, // Automatically set when a document is created
   },
 });
 
