@@ -104,3 +104,69 @@ export const getquestion = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const saveanswer = async (req, res) => {
+  try {
+    const { answers, collegename } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!answers || !collegename) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
+    }
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check if the college has questions
+    const question = await Question.findOne({ collegename });
+    if (!question) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No questions found for this college" });
+    }
+
+    // Check if user already answered within 6 months
+    const lastAnswer = await Answer.findOne({
+      userId: user._id,
+      collegename,
+    }).sort({ createdAt: -1 });
+
+    if (lastAnswer) {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      if (lastAnswer.createdAt > sixMonthsAgo) {
+        return res.status(400).json({
+          success: false,
+          message: "You can only answer again after 6 months",
+        });
+      }
+    }
+
+    // Save new answer
+    const newanswer = new Answer({
+      userId: user._id,
+      collegename,
+      answers,
+    });
+
+    await newanswer.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Answer saved successfully",
+    });
+  } catch (error) {
+    console.error("Save Answer Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

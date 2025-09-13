@@ -4,6 +4,7 @@ import connectDB from "./db/Database.js";
 import UserRouter from "./Router/user.route.js";
 import dotenv from "dotenv";
 import QuestionRouter from "./Router/question.route.js";
+import job from "./config/cors.js";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use("/api/user", UserRouter);
 app.use("/api/questions", QuestionRouter);
+job.start();
 
 app.get("/", (req, res) => res.send("Server is running"));
 
