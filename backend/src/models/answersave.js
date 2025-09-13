@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const answerschema = mongoose.Schema({
+const answerschema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -18,7 +18,7 @@ const answerschema = mongoose.Schema({
   ],
   createdAt: {
     type: Date,
-    default: Date.now, // Automatically set when a document is created
+    default: Date.now(), // Automatically set when a document is created
   },
 });
 
