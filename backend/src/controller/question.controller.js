@@ -173,7 +173,7 @@ export const saveanswer = async (req, res) => {
     }
 
     const newAnswer = new Answer({
-      userId: user._id.toString(),
+      userId: user._id,
       collegename: normalizedCollegeName,
       answers,
     });
