@@ -3,6 +3,7 @@ import cors from "cors";
 import connectDB from "./db/Database.js";
 import UserRouter from "./Router/user.route.js";
 import dotenv from "dotenv";
+import QuestionRouter from "./Router/question.route.js";
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/user", UserRouter);
+app.use("/api/questions", QuestionRouter);
 
 app.get("/", (req, res) => res.send("Server is running"));
 

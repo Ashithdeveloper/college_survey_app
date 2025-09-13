@@ -1,6 +1,7 @@
 import Question from "../models/question.model.js";
 import { configDotenv } from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import User from "../models/user.model.js";
 configDotenv();
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -59,6 +60,18 @@ export const generatequestion = async (collegename) => {
     console.log("Questions saved successfully!");
 
     return { success: true, message: "Questions generated successfully" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const getquestion = async (req, res) => {
+  try {
+   const user = await User.findById(req.user.id);
+    const collegename = user.collegename;
+    const question = await Question.findOne({ collegename });
+    return { success: true, message: "Questions fetched successfully", question };
   } catch (error) {
     console.error(error);
     return { success: false, message: error.message };
