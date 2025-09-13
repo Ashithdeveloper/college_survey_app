@@ -220,18 +220,18 @@ export const getresult = async (req, res) => {
       .join("\n");
 
     const verificationPrompt = `
-According to the selected options for the questions, give a rating (out of 0 to 100) for the following sub-bases of the student: mental health, placement training, skill training.
+        According to the selected options for the questions, give a rating (out of 0 to 100) for the following sub-bases of the student: mental health, placement training, skill training.
 
-Here are the collected student answers:
-${answersText}
+        Here are the collected student answers:
+        ${answersText}
 
-Provide the output as JSON in the following format:
-{
-  "mental_health": number,
-  "placement_training": number,
-  "skill_training": number
-}
-`;
+        Provide the output as JSON in the following format:
+        {
+          "mental_health": number,
+          "placement_training": number,
+          "skill_training": number
+        }
+        `;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
