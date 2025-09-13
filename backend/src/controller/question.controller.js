@@ -72,12 +72,35 @@ export const generatequestion = async (collegename) => {
 
 export const getquestion = async (req, res) => {
   try {
-   const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
     const collegename = user.collegename;
     const question = await Question.findOne({ collegename });
-    return { success: true, message: "Questions fetched successfully", question };
+
+    if (!question) {
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Questions not found for this college",
+        });
+    }
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Questions fetched successfully",
+        question,
+      });
   } catch (error) {
     console.error(error);
-    return { success: false, message: error.message };
+    return res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -130,6 +130,7 @@ export const signup = async (req, res) => {
       name,
       password : hashedPassword, 
       collegeId,
+      email,
       collegename,
       isVerified: true,
     });
