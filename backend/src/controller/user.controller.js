@@ -3,6 +3,8 @@ import { configDotenv } from "dotenv";
 configDotenv();
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs/promises"; // Use fs.promises for async file operations
+import { generateToken } from "../Token/genToken.js";
+import { hashPassword } from "../config/passwordencrypt.js";
 
 // API Key client
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -25,7 +27,7 @@ async function fileToGenerativePart(filePath, mimeType) {
 
 export const signup = async (req, res) => {
   try {
-    const { name, password, collegeId, collegename } = req.body;
+    const { name, password, collegeId, collegename , email  } = req.body;
     const imageFile = req.file; // Multer's upload.single("file") populates req.file
     console.log("Received Data:", {
       name,
@@ -33,6 +35,17 @@ export const signup = async (req, res) => {
       collegename,
       imageFile: imageFile?.path,
     });
+     
+    //if user login
+    if (email) {
+      const existing = await User.findOne({ email });
+      if (existing) {
+        return res
+          .status(400)
+          .json({ message: "User already exists",token ,success: false });
+      }
+    }
+     
 
     // Ensure an image file was uploaded
     if (!imageFile) {
@@ -64,7 +77,9 @@ export const signup = async (req, res) => {
       College ID: "${collegeId}"
       College Name: "${collegename}"
       
-      Respond with a JSON object. If all details match, {"verified": true}. If there's any inconsistency, {"verified": false, "reason": "Explain the discrepancy."}.
+      The image contains a student ID card.
+      
+      Respond with a JSON object. If all details match, {"verified": true}. If there's any inconsistency, {"verified": false, "reason": "Explain the discrepancy. "also return what verifyed details like name , collegeId, collegename"}.
     `;
 
     // Send the multimodal request (text and image) to Gemini 1.5 Flash
@@ -88,6 +103,7 @@ export const signup = async (req, res) => {
     let parsedOutput;
     try {
       parsedOutput = JSON.parse(cleanText);
+      console.log("Parsed Output:", parsedOutput);
     } catch (err) {
       console.error("Failed to parse AI response:", cleanText);
       await fs.unlink(imageFile.path); // Clean up temp file
@@ -105,11 +121,13 @@ export const signup = async (req, res) => {
         reason: parsedOutput.reason || "Unknown reason.",
       });
     }
+    //password hashing
+    const hashedPassword = await hashPassword(password);
 
     // Create and save the user if verification is successful
     const user = new User({
       name,
-      password, // Your pre-save hook will hash this
+      password : hashedPassword, 
       collegeId,
       collegename,
       isVerified: true,
@@ -118,10 +136,12 @@ export const signup = async (req, res) => {
 
     // Clean up the temporary uploaded file
     await fs.unlink(imageFile.path);
-
+    //create token
+    const token = generateToken(user._id);
     return res.status(201).json({
-      message: "User registered and verified successfully",
+      message: "student registered and verified successfully",
       success: true,
+      token,
     });
   } catch (error) {
     console.error("Signup Error:", error.response?.data || error.message);
@@ -136,3 +156,28 @@ export const signup = async (req, res) => {
       .json({ message: "Server error during signup", success: false });
   }
 };
+
+export const userLogin = async(req, res) => {
+    try {
+      const { email, password , name , role } = req.body;
+      if(!email || !password || !name || !role){
+        return res.status(400).json({message : "All fields are required"});
+      }
+      const existingUser = await User.findOne({ email });
+      if(existingUser){
+        return res.status(400).json({message : "User already exists"});
+      }
+      const hashedPassword = await hashPassword(password);
+      const newuser = new User({
+        name,
+        email,
+        password : hashedPassword,
+        role
+      })
+      await newuser.save();
+      const token = generateToken(newuser._id);
+      return res.status(200).json({message : "User created successfully", token}); 
+    } catch (error) {
+      console.log(error);
+    }
+}

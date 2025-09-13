@@ -3,8 +3,7 @@ import cors from 'cors';
 import connectDB from './db/Database.js';
 import UserRouter from "./Router/user.route.js"
 import { configDotenv } from "dotenv";
-import testGeminiAuth from './example.js';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 configDotenv();
 
 
@@ -28,7 +27,6 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/user', UserRouter); 
-testGeminiAuth();
 
 app.listen(3001, () => {
     connectDB();
