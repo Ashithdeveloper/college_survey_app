@@ -32,6 +32,7 @@ export const signup = async (req, res) => {
     const imageFile = req.file; // Multer's upload.single("file") populates req.file
     console.log("Received Data:", {
       name,
+      email,
       collegeId,
       collegename,
       imageFile: imageFile?.path,
