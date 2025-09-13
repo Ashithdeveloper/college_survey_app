@@ -2,6 +2,7 @@ import Question from "../models/question.model.js";
 import { configDotenv } from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import User from "../models/user.model.js";
+import Answer from "../models/answersave.js";
 configDotenv();
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -151,20 +152,35 @@ export const saveanswer = async (req, res) => {
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
       if (lastAnswer.createdAt > sixMonthsAgo) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "You can only answer again after 6 months",
+          });
+      }
+    }
+
+    // Validate each answer
+    for (const ans of answers) {
+      if (typeof ans.id !== "number" || typeof ans.answer !== "string") {
         return res.status(400).json({
           success: false,
-          message: "You can only answer again after 6 months",
+          message:
+            'Each answer must have an "id" (number) and "answer" (string)',
         });
       }
     }
 
-    const newanswer = new Answer({
-      userId: user._id,
+    const newAnswer = new Answer({
+      userId: user._id.toString(),
       collegename: normalizedCollegeName,
       answers,
     });
 
-    await newanswer.save();
+    console.log("Saving Answer:", newAnswer);
+
+    await newAnswer.save();
 
     return res.status(200).json({
       success: true,
@@ -183,8 +199,14 @@ export const saveanswer = async (req, res) => {
 
 export const getresult = async (req, res) => {
   try {
-    const 
+     const answer = await Answer.find()
+      const verificationPrompt = `According to the selected options for the questions give the rating out of 0 to 100 for the subbasics of the student. The subbasics are of mental health, placement training, skill training.`
+
+      const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
+      });
   } catch (error) {
-    
+    console.log(error);
   }
 }
