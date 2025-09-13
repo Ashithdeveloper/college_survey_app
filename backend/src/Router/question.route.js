@@ -4,6 +4,7 @@ import { getquestion } from "../controller/question.controller.js";
 
 const router = express.Router();
 
+
 router.get("/",verifyToken, getquestion)
 
 export default router
