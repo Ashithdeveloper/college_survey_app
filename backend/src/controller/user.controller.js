@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs/promises"; // Use fs.promises for async file operations
 import { generateToken } from "../Token/genToken.js";
 import { hashPassword } from "../config/passwordencrypt.js";
+import { generatequestion } from "./question.controller.js";
 
 // API Key client
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -133,7 +134,7 @@ export const signup = async (req, res) => {
       isVerified: true,
     });
     await user.save();
-
+    await generatequestion(collegename);
     // Clean up the temporary uploaded file
     await fs.unlink(imageFile.path);
     //create token
