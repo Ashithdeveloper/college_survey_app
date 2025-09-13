@@ -5,12 +5,14 @@ const questionSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  questions: {
-    id: { type: Number, required: true },
-    question: { type: String, required: true },
-    options: { type: [String], default: [] },
-    nextQuestionId: { type: mongoose.Mixed, default: {} },
-  },
+  questions: [
+  
+   {
+      id: { type: Number, required: true },
+      question: { type: String, required: true },
+      options: { type: [String], required: true },
+      jump_to: { type: [Number], required: false }
+    }]
 });
 
 const Question = mongoose.models.Question || mongoose.model("Question", questionSchema);

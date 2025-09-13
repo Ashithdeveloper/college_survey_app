@@ -45,11 +45,14 @@ export const generatequestion = async (collegename) => {
 
     // Transform questions to match schema
     const questionsArray = (parsedJSON.questions || []).map((q, index) => ({
-      id: index + 1, // Assign a unique ID
-      question: q.question || "No question provided",
-      options: Array.isArray(q.options) ? q.options : [],
-      jump_to: q.jump_to || [],
+      id: index + 1, // required
+      question: q.question?.trim() || `Question ${index + 1}`, // required
+      options:
+        Array.isArray(q.options) && q.options.length ? q.options : ["Option 1"], // ensure non-empty
+      jump_to: Array.isArray(q.jump_to) ? q.jump_to : [],
     }));
+
+    console.log("Transformed questions array:", questionsArray);
 
     const questionDoc = new Question({
       collegename,
@@ -65,6 +68,7 @@ export const generatequestion = async (collegename) => {
     return { success: false, message: error.message };
   }
 };
+
 
 export const getquestion = async (req, res) => {
   try {
