@@ -108,6 +108,7 @@ export const getquestion = async (req, res) => {
 export const saveanswer = async (req, res) => {
   try {
     const { answers, collegename } = req.body;
+    const normalizedCollegeName = collegename.trim().toLowerCase();
     const user = await User.findById(req.user.id);
 
     if (!answers || !collegename) {
@@ -116,24 +117,33 @@ export const saveanswer = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Answers must be a non-empty array" });
+    }
+
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
 
-    // Check if the college has questions
-    const question = await Question.findOne({ collegename });
+    const question = await Question.findOne({
+      collegename: normalizedCollegeName,
+    });
     if (!question) {
       return res
         .status(404)
-        .json({ success: false, message: "No questions found for this college" });
+        .json({
+          success: false,
+          message: "No questions found for this college",
+        });
     }
 
-    // Check if user already answered within 6 months
     const lastAnswer = await Answer.findOne({
       userId: user._id,
-      collegename,
+      collegename: normalizedCollegeName,
     }).sort({ createdAt: -1 });
 
     if (lastAnswer) {
@@ -148,10 +158,9 @@ export const saveanswer = async (req, res) => {
       }
     }
 
-    // Save new answer
     const newanswer = new Answer({
       userId: user._id,
-      collegename,
+      collegename: normalizedCollegeName,
       answers,
     });
 
@@ -170,3 +179,12 @@ export const saveanswer = async (req, res) => {
     });
   }
 };
+
+
+export const getresult = async (req, res) => {
+  try {
+    const 
+  } catch (error) {
+    
+  }
+}
