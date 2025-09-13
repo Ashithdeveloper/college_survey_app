@@ -7,26 +7,34 @@ configDotenv();
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+/**
+ * Generate survey questions for a given college
+ */
 export const generatequestion = async (collegename) => {
   try {
     if (!collegename) throw new Error("Please enter collegename");
 
-    const existing = await Question.findOne({ collegename });
+    const normalizedCollegeName = collegename.trim().toLowerCase();
+
+    const existing = await Question.findOne({ collegename: normalizedCollegeName });
     if (existing)
       throw new Error("Questions already generated for this college");
 
-    const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditons for the questions are 
-        1. The questions should be in the format of questions and options rater than the last question should be the answer by themselves and the last question be sharing their own feelings.
-        2. This questions must be given in the format of json and if a question is answered then the next question will be related to the answer of the question answered specifically that if a question is answered it will jump to its related question which will answer the previous question("Notice the questions must be of jumped that means it must move from one place to another question. Eg: If first question is answered as option 2 then the question related to the options will be in the fourth question it will skip the second and third question.").
-        3. The question must take the survey of their mental feelings (or) situations, their skill-development supports, placements percentage and their training systematics and skill based support regarding to their college`;
+    const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditions for the questions are:
+1. The questions should be in the format of questions and options rather than the last question should be the answer by themselves and the last question be sharing their own feelings.
+2. The questions must be given in the format of JSON and if a question is answered then the next question will be related to the answer of the question answered specifically that if a question is answered it will jump to its related question which will answer the previous question ("Notice the questions must be of jumped that means it must move from one place to another question. Eg: If first question is answered as option 2 then the question related to the options will be in the fourth question it will skip the second and third question.").
+3. The question must take the survey of their mental feelings (or) situations, their skill-development supports, placements percentage and their training systematics and skill based support regarding to their college.`;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
     });
 
-    const aiResponseText = result.response.text();
+    let aiResponseText = result.response.text();
     console.log("AI raw response:", aiResponseText);
+
+    // Strip markdown fences if present
+    aiResponseText = aiResponseText.replace(/```json|```/g, "").trim();
 
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
@@ -46,17 +54,16 @@ export const generatequestion = async (collegename) => {
 
     // Transform questions to match schema
     const questionsArray = (parsedJSON.questions || []).map((q, index) => ({
-      id: index + 1, // required
-      question: q.question?.trim() || `Question ${index + 1}`, // required
-      options:
-        Array.isArray(q.options) && q.options.length ? q.options : ["Option 1"], // ensure non-empty
+      id: index + 1,
+      question: q.question?.trim() || `Question ${index + 1}`,
+      options: Array.isArray(q.options) && q.options.length ? q.options : ["Option 1"],
       jump_to: Array.isArray(q.jump_to) ? q.jump_to : [],
     }));
 
     console.log("Transformed questions array:", questionsArray);
 
     const questionDoc = new Question({
-      collegename,
+      collegename: normalizedCollegeName,
       questions: questionsArray,
     });
 
@@ -70,76 +77,63 @@ export const generatequestion = async (collegename) => {
   }
 };
 
-
+/**
+ * Get questions for the current user's college
+ */
 export const getquestion = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const collegename = user.collegename;
+    const collegename = user.collegename.trim().toLowerCase();
     const question = await Question.findOne({ collegename });
 
     if (!question) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Questions not found for this college",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Questions not found for this college",
+      });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Questions fetched successfully",
-        question,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Questions fetched successfully",
+      question,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
+/**
+ * Save a student's survey answers
+ */
 export const saveanswer = async (req, res) => {
   try {
     const { answers, collegename } = req.body;
-    const normalizedCollegeName = collegename.trim().toLowerCase();
-    const user = await User.findById(req.user.id);
-
     if (!answers || !collegename) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
     if (!Array.isArray(answers) || answers.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Answers must be a non-empty array" });
+      return res.status(400).json({ success: false, message: "Answers must be a non-empty array" });
     }
 
+    const normalizedCollegeName = collegename.trim().toLowerCase();
+    const user = await User.findById(req.user.id);
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const question = await Question.findOne({
-      collegename: normalizedCollegeName,
-    });
+    const question = await Question.findOne({ collegename: normalizedCollegeName });
     if (!question) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No questions found for this college",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No questions found for this college",
+      });
     }
 
     const lastAnswer = await Answer.findOne({
@@ -152,12 +146,10 @@ export const saveanswer = async (req, res) => {
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
       if (lastAnswer.createdAt > sixMonthsAgo) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "You can only answer again after 6 months",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "You can only answer again after 6 months",
+        });
       }
     }
 
@@ -166,20 +158,18 @@ export const saveanswer = async (req, res) => {
       if (typeof ans.id !== "number" || typeof ans.answer !== "string") {
         return res.status(400).json({
           success: false,
-          message:
-            'Each answer must have an "id" (number) and "answer" (string)',
+          message: 'Each answer must have an "id" (number) and "answer" (string)',
         });
       }
     }
 
     const newAnswer = new Answer({
-      userId: user._id.toString(),
+      userId: user._id, // keep as ObjectId
       collegename: normalizedCollegeName,
       answers,
     });
 
     console.log("Saving Answer:", newAnswer);
-
     await newAnswer.save();
 
     return res.status(200).json({
@@ -196,13 +186,12 @@ export const saveanswer = async (req, res) => {
   }
 };
 
-
-
-
+/**
+ * Generate result ratings from all collected answers
+ */
 export const getresult = async (req, res) => {
   try {
     const allAnswers = await Answer.find();
-
     if (allAnswers.length === 0) {
       return res.status(404).json({
         success: false,
@@ -213,9 +202,7 @@ export const getresult = async (req, res) => {
     // Prepare answers text for AI input
     const answersText = allAnswers
       .map((ans, index) => {
-        return `Student ${index + 1} from "${
-          ans.collegename
-        }": ${JSON.stringify(ans.answers)}`;
+        return `Student ${index + 1} from "${ans.collegename}": ${JSON.stringify(ans.answers)}`;
       })
       .join("\n");
 
@@ -234,15 +221,16 @@ Provide the output as JSON in the following format:
 `;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
     });
 
-    const aiResponseText = result.response.text();
+    let aiResponseText = result.response.text();
     console.log("AI Raw Response:", aiResponseText);
 
-    // Try to extract JSON object from the response
+    // Strip markdown fences
+    aiResponseText = aiResponseText.replace(/```json|```/g, "").trim();
+
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
     if (firstBrace === -1 || lastBrace === -1) {
