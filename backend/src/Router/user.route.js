@@ -8,6 +8,7 @@ const router = express.Router()
 
 router.post("/signup", upload.single("file"), signup);
 router.post("/userlogin", userLogin);
+
 router.get("/getme", verifyToken, getme);
 
 
