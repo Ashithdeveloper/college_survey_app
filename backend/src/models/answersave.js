@@ -12,7 +12,8 @@ const answerschema = new mongoose.Schema({
   },
   answers: [
     {
-      id: { type: Number, required: true }, // ID of the question
+      id: { type: Number, required: true },
+      question: { type: String, required: true }, // ID of the question
       answer: { type: String, required: true }, // The user’s answer (string)
     },
   ],

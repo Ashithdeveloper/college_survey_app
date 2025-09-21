@@ -69,6 +69,17 @@ export const generatequestion = async (collegename) => {
     return { success: false, message: error.message };
   }
 };
+export const getallCollege = async (req, res) => {
+  try {
+    const colleges = await Question.find();
+    const collegeNames = colleges.map((c) => c.collegename); // extract the names
+    return res.status(200).json(collegeNames);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 
 export const getquestion = async (req, res) => {
@@ -106,96 +117,58 @@ export const getquestion = async (req, res) => {
   }
 };
 
-export const saveanswer = async (req, res) => {
+// Save survey answers
+export const saveAnswer = async (req, res) => {
   try {
-    const { answers, collegename } = req.body;
-    const normalizedCollegeName = collegename.trim().toLowerCase();
-    const user = await User.findById(req.user.id);
+    const { collegename, answers } = req.body;
+    const userId = req.user.id; // from auth middleware
+    console.log(req.body);
 
-    if (!answers || !collegename) {
+    // Validate inputs
+    if (
+      !collegename ||
+      !answers ||
+      !Array.isArray(answers) ||
+      answers.length === 0
+    ) {
       return res
         .status(400)
-        .json({ success: false, message: "All fields are required" });
+        .json({ success: false, message: "All fields are required." });
     }
+    // student can only submit answers once every 6 months
+     const lastAnswer = await Answer.findOne({ userId, collegename }).sort({
+       createdAt: -1,
+     });
+     if (lastAnswer) {
+       const sixMonthsAgo = new Date();
+       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    if (!Array.isArray(answers) || answers.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Answers must be a non-empty array" });
-    }
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-
-    const question = await Question.findOne({
-      collegename: normalizedCollegeName,
-    });
-    if (!question) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No questions found for this college",
-        });
-    }
-
-    const lastAnswer = await Answer.findOne({
-      userId: user._id,
-      collegename: normalizedCollegeName,
-    }).sort({ createdAt: -1 });
-
-    if (lastAnswer) {
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-      if (lastAnswer.createdAt > sixMonthsAgo) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "You can only answer again after 6 months",
-          });
-      }
-    }
-
-    // Validate each answer
-    for (const ans of answers) {
-      if (typeof ans.id !== "number" || typeof ans.answer !== "string") {
-        return res.status(400).json({
-          success: false,
-          message:
-            'Each answer must have an "id" (number) and "answer" (string)',
-        });
-      }
-    }
+       if (lastAnswer.createdAt > sixMonthsAgo) {
+         return res.status(200).json({
+           success: true,
+           message: "You can only submit answers once every 6 months.",
+         });
+       }
+     }
 
     const newAnswer = new Answer({
-      userId: user._id,
-      collegename: normalizedCollegeName,
+      userId,
+      collegename,
       answers,
     });
 
-    console.log("Saving Answer:", newAnswer);
-
     await newAnswer.save();
 
-    return res.status(200).json({
-      success: true,
-      message: "Answer saved successfully",
-    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Answer saved successfully." });
   } catch (error) {
     console.error("Save Answer Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
   }
 };
-
 
 
 

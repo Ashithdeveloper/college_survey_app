@@ -144,6 +144,7 @@ export const signup = async (req, res) => {
     return res.status(201).json({
       message: "student registered and verified successfully",
       success: true,
+      user,
       token,
     });
   } catch (error) {
@@ -179,7 +180,7 @@ export const userLogin = async(req, res) => {
       })
       await newuser.save();
       const token = generateToken(newuser._id);
-      return res.status(200).json({message : "User created successfully", token}); 
+      return res.status(200).json({message : "User created successfully", token , user : newuser}); 
     } catch (error) {
       console.log(error);
     }
@@ -215,7 +216,7 @@ export const login = async (req, res) => {
     const token = generateToken(user._id);
     return res
       .status(200)
-      .json({ message: "User logged in successfully", token });
+      .json({ message: "User logged in successfully", token , user});
   } catch (error) {
     console.error("Login error:", error);
     return res

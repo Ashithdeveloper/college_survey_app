@@ -1,12 +1,55 @@
 import {  useRouter } from "expo-router";
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Pressable, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { useDispatch } from "react-redux";
+import { getUserDetails } from "@/Redux/Slices/authSlice";
+import axiosInstance from "@/config/axiosInstance";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [ passwordVisible, setPasswordVisible] = useState(true);
    const router = useRouter();
+   const dispatch = useDispatch();
+   //Login Function 
+  const handleLogin = async () => {
+    try {
+      if(!email || !password) return alert("All fields are required");
+      const response = await axiosInstance.post(
+        `/api/user/login`,
+        {
+          email,
+          password,
+        }
+      );
+      if (response.status === 200) {
+        Alert.alert("Success", "Login successful");
+        // Save token
+        dispatch(getUserDetails(response.data.user));
+        const token = response.data.token;
+        await AsyncStorage.setItem("userToken", token);
+        router.replace("/(tabs)");
+        setEmail("");
+        setPassword("");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
   
   return (
     <KeyboardAvoidingView
@@ -14,8 +57,14 @@ export default function Login() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View className="flex-1 items-center justify-center px-4 bg-white ">
+        <View className="mb-19 pb-5">
+          <Image
+            source={require("../../assets/images/boyspeaking.png")}
+            style={{ width: 200, height: 290, resizeMode: "contain" }}
+          />
+        </View>
         {/* Card container */}
-        <View className="w-full max-w-md bg-white p-6 rounded-xl shadow-lg ">
+        <View className="w-full max-w-md bg-white p-6 pt-0 rounded-xl shadow-lg ">
           <Text className="text-2xl font-bold text-black mb-6 mt-2 text-center">
             Login
           </Text>
@@ -63,7 +112,7 @@ export default function Login() {
             <Text className="text-gray-700">Show password</Text>
           </Pressable>
           {/* Login button */}
-          <TouchableOpacity className="bg-blue-600 rounded-lg py-3 items-center">
+          <TouchableOpacity className="bg-blue-600 rounded-lg py-3 items-center" onPress={handleLogin}>
             <Text className="text-white font-semibold text-lg">Login</Text>
           </TouchableOpacity>
 

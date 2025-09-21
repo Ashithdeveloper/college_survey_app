@@ -1,17 +1,53 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Tabs } from 'expo-router'
+import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function _layout() {
+export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs screenOptions={
-      {
-        headerShown: false
-      }
-    }>
-      <Tabs.Screen name="index"  />
-      <Tabs.Screen name="profile"  />
-      <Tabs.Screen name="Rank"  />
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: "#1DA1F2",
+        tabBarInactiveTintColor: "#657786",
+        tabBarStyle: {
+          backgroundColor: "#fff",
+          borderTopWidth: 1,
+          borderTopColor: "#E1E8ED",
+          height: 68 + insets.bottom, // usually add some height
+          paddingTop: 1,
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "Home",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="Rank"
+        options={{
+          title: "Rank",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trophy" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
-  )
+  );
 }
