@@ -12,6 +12,7 @@ import { CollegeName } from "@/config/CollegeName";
 import { useDispatch, useSelector } from "react-redux";
 import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
+import { setResultCollege } from "@/Redux/Slices/resultCollege";
 
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
@@ -59,7 +60,10 @@ export default function Home() {
   const notforyou = (college: string) => {
     Alert.alert("Notice", `This question is only for ${college}.`);
   };
-
+  const result = (College: string) => {
+    router.push("/screens/Result");
+    dispatch(setResultCollege(College));
+  };
   useEffect(() => {
     getAllCollege();
   }, []);
@@ -90,6 +94,7 @@ export default function Home() {
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: "#22c55e" }]}
+                  onPress={() => result(college)}
                 >
                   <Text style={styles.buttonText}>Result</Text>
                 </TouchableOpacity>

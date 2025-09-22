@@ -174,7 +174,16 @@ export const saveAnswer = async (req, res) => {
 
 export const getresult = async (req, res) => {
   try {
-    const allAnswers = await Answer.find();
+    const { collegename } = req.params;
+    console.log(req.params);
+
+    const allAnswers = await Answer.find({ collegename });
+    if (!allAnswers) {
+      return res.status(404).json({
+        success: false,
+        message: "No feedback found in the database",
+      });
+    }
 
     if (allAnswers.length === 0) {
       return res.status(404).json({
@@ -193,18 +202,23 @@ export const getresult = async (req, res) => {
       .join("\n");
 
     const verificationPrompt = `
-        According to the selected options for the questions, give a rating (out of 0 to 100) for the following sub-bases of the student: mental health, placement training, skill training.
+      According to the selected options for the questions, give a rating (0–100) for these categories:
+      - mental health
+      - placement training
+      - skill training
 
-        Here are the collected student answers:
-        ${answersText}
+      Here are the collected student answers:
+      ${answersText}
 
-        Provide the output as JSON in the following format:
-        {
-          "mental_health": number,
-          "placement_training": number,
-          "skill_training": number
-        }
-        `;
+      Provide the output as valid JSON in this format only:
+      {
+        "mental_health": number,
+        "placement_training": number,
+        "skill_training": number,
+        "total_score_college": number,
+        "overall explanation": string,
+      }
+    `;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -215,15 +229,29 @@ export const getresult = async (req, res) => {
     const aiResponseText = result.response.text();
     console.log("AI Raw Response:", aiResponseText);
 
-    // Try to extract JSON object from the response
+    // Extract JSON from AI response safely
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
     if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error("AI did not return valid JSON format");
+      return res.status(400).json({
+        success: false,
+        message: "AI did not return a valid JSON format",
+        raw: aiResponseText,
+      });
     }
 
-    const jsonString = aiResponseText.slice(firstBrace, lastBrace + 1).trim();
-    const ratings = JSON.parse(jsonString);
+    let ratings;
+    try {
+      const jsonString = aiResponseText.slice(firstBrace, lastBrace + 1).trim();
+      ratings = JSON.parse(jsonString);
+    } catch (parseErr) {
+      console.error("JSON Parse Error:", parseErr.message);
+      return res.status(400).json({
+        success: false,
+        message: "Failed to parse AI response as JSON",
+        raw: aiResponseText,
+      });
+    }
 
     return res.status(200).json({
       success: true,

@@ -8,6 +8,6 @@ const router = express.Router();
 router.get("/",verifyToken, getquestion)
 router.get('/allcollege',getallCollege)
 router.post("/answer",verifyToken,saveAnswer);
-router.get('/result',getresult);
+router.get('/result/:collegename',verifyToken,getresult);
 
 export default router

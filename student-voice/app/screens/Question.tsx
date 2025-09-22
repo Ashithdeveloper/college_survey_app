@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "expo-router";
 import axiosInstance from "@/config/axiosInstance";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 export default function QuestionScreen() {
   const select = useSelector((state: any) => state.ques.question);
@@ -116,81 +117,102 @@ const handleSubmit = async () => {
 
 
   return (
-    <View className="flex-1 bg-gray-50 p-4">
-      {/* College name */}
-      <Text className="text-2xl font-bold mb-6 text-gray-800 text-center">
-        {select.collegename}
-      </Text>
-
-      {/* Question card */}
-      <View className="p-4 bg-white rounded-xl shadow-md mb-6">
-        <Text className="text-lg font-semibold mb-4 text-gray-900">
-          {currentIndex + 1}. {currentQuestion.question}
+    <KeyboardAwareScrollView
+      enableOnAndroid={true}
+      keyboardShouldPersistTaps="handled"
+      extraScrollHeight={90}
+      className="flex-1 bg-gray-50"
+    >
+      <View className=" p-4">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            marginBottom: 12,
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: "#007AFF",
+            alignSelf: "flex-start",
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "600" }}>← Back</Text>
+        </TouchableOpacity>
+        {/* College name */}
+        <Text className="text-2xl font-bold mb-6 text-gray-800 text-center">
+          {select.collegename}
         </Text>
 
-        {currentQuestion.options.map((option: string, idx: number) => {
-          const isSelected =
-            answers[currentIndex]?.answer === option ||
-            ((option === "Other (please specify)" || option === "Option 1") &&
-              customInputs[currentIndex] !== undefined);
+        {/* Question card */}
+        <View className="p-4 bg-white rounded-xl shadow-md mb-6">
+          <Text className="text-lg font-semibold mb-4 text-gray-900">
+            {currentIndex + 1}. {currentQuestion.question}
+          </Text>
 
-          return (
-            <View key={idx} className="mb-3">
-              <TouchableOpacity
-                onPress={() => handleSelect(option)}
-                className={`p-3 rounded-lg border ${
-                  isSelected
-                    ? "bg-blue-500 border-blue-600"
-                    : "bg-gray-100 border-gray-300"
-                }`}
-              >
-                <Text
-                  className={`text-base ${
-                    isSelected ? "text-white font-bold" : "text-gray-800"
+          {currentQuestion.options.map((option: string, idx: number) => {
+            const isSelected =
+              answers[currentIndex]?.answer === option ||
+              ((option === "Other (please specify)" || option === "Option 1") &&
+                customInputs[currentIndex] !== undefined);
+
+            return (
+              <View key={idx} className="mb-3">
+                <TouchableOpacity
+                  onPress={() => handleSelect(option)}
+                  className={`p-3 rounded-lg border ${
+                    isSelected
+                      ? "bg-blue-500 border-blue-600"
+                      : "bg-gray-100 border-gray-300"
                   }`}
                 >
-                  {option}
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    className={`text-base ${
+                      isSelected ? "text-white font-bold" : "text-gray-800"
+                    }`}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
 
-              {/* Show input if selected option needs extra text */}
-              {(option === "Other (please specify)" || option === "Option 1") &&
-                answers[currentIndex] &&
-                answers[currentIndex].question === currentQuestion.question && (
-                  <TextInput
-                    placeholder="Enter your answer"
-                    value={customInputs[currentIndex] || ""}
-                    onChangeText={handleInputChange}
-                    className="mt-2 p-3 border border-gray-300 rounded-lg bg-white"
-                  />
-                )}
-            </View>
-          );
-        })}
-      </View>
+                {/* Show input if selected option needs extra text */}
+                {(option === "Other (please specify)" ||
+                  option === "Option 1") &&
+                  answers[currentIndex] &&
+                  answers[currentIndex].question ===
+                    currentQuestion.question && (
+                    <TextInput
+                      placeholder="Enter your answer"
+                      value={customInputs[currentIndex] || ""}
+                      onChangeText={handleInputChange}
+                      className="mt-2 p-3 border border-gray-300 rounded-lg bg-white"
+                    />
+                  )}
+              </View>
+            );
+          })}
+        </View>
 
-      {/* Navigation buttons */}
-      <View className="flex-row justify-between">
-        {currentIndex > 0 && (
+        {/* Navigation buttons */}
+        <View className="flex-row justify-between">
+          {currentIndex > 0 && (
+            <TouchableOpacity
+              onPress={handleBack}
+              className="bg-gray-400 py-4 px-6 rounded-xl shadow-lg"
+            >
+              <Text className="text-center text-white text-lg font-bold">
+                Back
+              </Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
-            onPress={handleBack}
-            className="bg-gray-400 py-4 px-6 rounded-xl shadow-lg"
+            onPress={handleNext}
+            className="bg-blue-600 py-4 px-6 rounded-xl shadow-lg ml-auto"
           >
             <Text className="text-center text-white text-lg font-bold">
-              Back
+              {currentIndex < select.questions.length - 1 ? "Next" : "Submit"}
             </Text>
           </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          onPress={handleNext}
-          className="bg-blue-600 py-4 px-6 rounded-xl shadow-lg ml-auto"
-        >
-          <Text className="text-center text-white text-lg font-bold">
-            {currentIndex < select.questions.length - 1 ? "Next" : "Submit"}
-          </Text>
-        </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAwareScrollView>
   );
 }
