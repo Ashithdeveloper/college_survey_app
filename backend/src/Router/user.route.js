@@ -6,7 +6,14 @@ const upload = multer({ dest: "uploads/" });
 
 const router = express.Router()
 
-router.post("/signup", upload.single("file"), signup);
+router.post(
+  "/signup",
+  upload.fields([
+    { name: "liveselfie", maxCount: 1 },
+    { name: "idCard", maxCount: 1 },
+  ]),
+  signup
+);
 router.post("/userlogin", userLogin);
 
 router.get("/getme", verifyToken, getme);

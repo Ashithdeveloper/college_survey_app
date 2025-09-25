@@ -28,6 +28,7 @@ export default function StudentSigup() {
   const [password, setPassword] = useState("");
   const [ collegename, setCollegeName] = useState("");
   const [ imagePick , setImagePick] = useState(false);
+  const [ selfie , setSelfie ] = useState<string|null>(null)
   const router = useRouter();
     const [image, setImage] = useState<string|null>(null);
     const dispatch = useDispatch();
@@ -44,7 +45,17 @@ export default function StudentSigup() {
       setImagePick(true);
     };
     //StudentSigup
-
+   const pickSelfie = async () =>{
+    let selfie = await ImagePicker.launchCameraAsync({
+    mediaTypes: ["image"],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 1,
+    })
+    if(!selfie.canceled){
+      setSelfie(selfie.assets[0].uri);
+    }
+   }
 
     const handleStudentLogin = async (
       name: string,
@@ -121,6 +132,10 @@ export default function StudentSigup() {
         <Text className="text-2xl font-bold text-black mb-6 text-center">
           Student Signup
         </Text>
+        {/**Take selfie */}
+        <View>
+          
+        </View>
 
         {/* Name */}
         <View className="mb-4">

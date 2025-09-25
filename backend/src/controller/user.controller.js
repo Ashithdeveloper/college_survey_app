@@ -29,13 +29,14 @@ async function fileToGenerativePart(filePath, mimeType) {
 export const signup = async (req, res) => {
   try {
     const { name, password, collegeId, collegename , email  } = req.body;
-    const imageFile = req.file; // Multer's upload.single("file") populates req.file
+    const liveselfie = req.files["liveselfie"]?.[0];
+    const idCard = req.files["idCard"]?.[0];
     console.log("Received Data:", {
       name,
       email,
       collegeId,
       collegename,
-      imageFile: imageFile?.path,
+      imageFile: req.files["idcard" , "liveselfie"] ,
     });
      
     //if user login
@@ -50,7 +51,7 @@ export const signup = async (req, res) => {
      
 
     // Ensure an image file was uploaded
-    if (!imageFile) {
+    if (!liveselfie || !idCard) {
       return res
         .status(400)
         .json({ message: "Image upload is required.", success: false });
@@ -66,9 +67,13 @@ export const signup = async (req, res) => {
     }
 
     // Convert the uploaded image file to a Gemini-compatible format
-    const imagePart = await fileToGenerativePart(
-      imageFile.path,
-      imageFile.mimetype
+    const liveselfiePart = await fileToGenerativePart(
+      liveselfie.path,
+      liveselfie.mimetype
+    );
+    const idCardPart = await fileToGenerativePart(
+      idCard.path,
+      idCard.mimetype
     );
 
     // Prompt for both text and vision verification
@@ -81,7 +86,7 @@ export const signup = async (req, res) => {
       
       The image contains a student ID card.
       
-      Respond with a JSON object. If all details match, {"verified": true}. If there's any inconsistency, {"verified": false, "reason": "Explain the discrepancy. "also return what verifyed details like name , collegeId, collegename"}.
+      Respond with a JSON object. If all details match and match the student live selfie image, {"verified": true}. If there's any inconsistency, {"verified": false, "reason": "Explain the discrepancy. "also return what verifyed details like name , collegeId, collegename"}.
     `;
 
     // Send the multimodal request (text and image) to Gemini 1.5 Flash
@@ -90,7 +95,7 @@ export const signup = async (req, res) => {
       contents: [
         {
           role: "user",
-          parts: [{ text: verificationPrompt }, imagePart],
+          parts: [{ text: verificationPrompt }, liveselfiePart, idCardPart],
         },
       ],
     });
