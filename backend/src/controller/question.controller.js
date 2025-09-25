@@ -15,10 +15,10 @@ export const generatequestion = async (collegename) => {
     if (existing)
       throw new Error("Questions already generated for this college");
 
-    const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditons for the questions are 
-        1. The questions should be in the format of questions and options rater than the last question should be the answer by themselves and the last question be sharing their own feelings.
-        2. This questions must be given in the format of json and if a question is answered then the next question will be related to the answer of the question answered specifically that if a question is answered it will jump to its related question which will answer the previous question("Notice the questions must be of jumped that means it must move from one place to another question. Eg: If first question is answered as option 2 then the question related to the options will be in the fourth question it will skip the second and third question.").
-        3. The question must take the survey of their mental feelings (or) situations, their skill-development supports, placements percentage and their training systematics and skill based support regarding to their college`;
+    const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditions for the questions are:
+      1. Questions should be in the format of questions and options; the last question should allow sharing their own feelings.
+      2. Questions must be in JSON format and jumps should be handled according to answers.
+      3. Questions must cover mental health, skill-development support, placements, training, and skill-based support regarding their college.`;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent({
@@ -44,15 +44,18 @@ export const generatequestion = async (collegename) => {
       throw new Error("Failed to parse AI response as JSON");
     }
 
-    // Transform questions to match schema
-    const questionsArray = (parsedJSON.questions || []).map((q, index) => ({
-      id: index + 1, // required
-      question: q.question?.trim() || `Question ${index + 1}`, // required
-      options:
-        Array.isArray(q.options) && q.options.length ? q.options : ["Option 1"], // ensure non-empty
-      jump_to: Array.isArray(q.jump_to) ? q.jump_to : [],
-    }));
-
+const questionsArray = parsedJSON.questions.map((q, index) => ({
+  id: index + 1,
+  question: q.question || q.text, // fallback if AI used 'text'
+  options:
+    Array.isArray(q.options) && q.options.length
+      ? q.options.map((opt) => ({
+          text: opt.text,
+          nextQuestionId: typeof opt.next === "number" ? opt.next : null,
+        }))
+      : [{ text: "Other (please specify)", nextQuestionId: null }],
+  jump_to: [],
+}));
     console.log("Transformed questions array:", questionsArray);
 
     const questionDoc = new Question({
@@ -221,7 +224,7 @@ export const getresult = async (req, res) => {
     `;
 
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
+  
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
     });

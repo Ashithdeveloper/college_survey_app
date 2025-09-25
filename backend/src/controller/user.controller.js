@@ -27,69 +27,66 @@ async function fileToGenerativePart(filePath, mimeType) {
 }
 
 export const signup = async (req, res) => {
+  const liveselfie = req.files["liveselfie"]?.[0];
+  const idCard = req.files["idCard"]?.[0];
+
+  const cleanUpFiles = async () => {
+    if (liveselfie?.path) await fs.unlink(liveselfie.path).catch(() => {});
+    if (idCard?.path) await fs.unlink(idCard.path).catch(() => {});
+  };
+
   try {
-    const { name, password, collegeId, collegename , email  } = req.body;
-    const liveselfie = req.files["liveselfie"]?.[0];
-    const idCard = req.files["idCard"]?.[0];
+    const { name, password, collegeId, collegename, email } = req.body;
+
     console.log("Received Data:", {
       name,
       email,
       collegeId,
       collegename,
-      imageFile: req.files["idcard" , "liveselfie"] ,
+      idCardPath: idCard?.path,
+      selfiePath: liveselfie?.path,
     });
-     
-    //if user login
-    if (email) {
-      const existing = await User.findOne({ email });
-      if (existing) {
-        return res
-          .status(400)
-          .json({ message: "User already exists",token ,success: false });
-      }
-    }
-     
 
-    // Ensure an image file was uploaded
+    // Ensure files are uploaded
     if (!liveselfie || !idCard) {
       return res
         .status(400)
-        .json({ message: "Image upload is required.", success: false });
+        .json({
+          message: "Both ID card and selfie are required.",
+          success: false,
+        });
     }
 
     // Check if user already exists
-    const existing = await User.findOne({ collegeId });
-    if (existing) {
-      await fs.unlink(imageFile.path); // Clean up the temp file
+    const existingUser = await User.findOne({
+      $or: [{ email }, { collegeId }],
+    });
+    if (existingUser) {
+      await cleanUpFiles();
       return res
         .status(400)
         .json({ message: "User already exists", success: false });
     }
 
-    // Convert the uploaded image file to a Gemini-compatible format
+    // Convert images to Gemini-compatible format
     const liveselfiePart = await fileToGenerativePart(
       liveselfie.path,
       liveselfie.mimetype
     );
-    const idCardPart = await fileToGenerativePart(
-      idCard.path,
-      idCard.mimetype
-    );
+    const idCardPart = await fileToGenerativePart(idCard.path, idCard.mimetype);
 
-    // Prompt for both text and vision verification
+    // AI verification prompt
     const verificationPrompt = `
-      You are a verification expert. Your task is to check if the details provided in the text match the information on the student ID card in the image.
-      Details to verify:
+      You are a verification expert. Check if the text details match the student ID card and live selfie image.
+      Details:
       Name: "${name}"
       College ID: "${collegeId}"
       College Name: "${collegename}"
-      
-      The image contains a student ID card.
-      
-      Respond with a JSON object. If all details match and match the student live selfie image, {"verified": true}. If there's any inconsistency, {"verified": false, "reason": "Explain the discrepancy. "also return what verifyed details like name , collegeId, collegename"}.
+
+      Respond with JSON: {"verified": true} if valid, else {"verified": false, "reason": "Explain the discrepancy", "verifiedDetails": { ... }}
     `;
 
-    // Send the multimodal request (text and image) to Gemini 1.5 Flash
+    // Send multimodal request to Gemini
     const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent({
       contents: [
@@ -100,7 +97,6 @@ export const signup = async (req, res) => {
       ],
     });
 
-    // Clean and parse the AI's JSON response
     const aiResponseText = result.response.text();
     const cleanText = aiResponseText
       .replace(/```json/g, "")
@@ -113,59 +109,60 @@ export const signup = async (req, res) => {
       console.log("Parsed Output:", parsedOutput);
     } catch (err) {
       console.error("Failed to parse AI response:", cleanText);
-      await fs.unlink(imageFile.path); // Clean up temp file
+      await cleanUpFiles();
       return res
         .status(500)
         .json({ message: "Invalid AI response format", success: false });
     }
 
-    // Check the verification result from Gemini
+    // Verification check
     if (!parsedOutput.verified) {
-      await fs.unlink(imageFile.path); // Clean up temp file
-      return res.status(400).json({
-        message: "Data verification failed",
-        success: false,
-        reason: parsedOutput.reason || "Unknown reason.",
-      });
+      await cleanUpFiles();
+      return res
+        .status(400)
+        .json({
+          message: parsedOutput.reason || "Verification failed",
+          success: false,
+        });
     }
-    //password hashing
+
+    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create and save the user if verification is successful
+    // Create user
     const user = new User({
       name,
-      password : hashedPassword, 
+      password: hashedPassword,
       collegeId,
       email,
       collegename,
       isVerified: true,
     });
     await user.save();
+
+    // Generate default questions for the college
     await generatequestion(collegename);
-    // Clean up the temporary uploaded file
-    await fs.unlink(imageFile.path);
-    //create token
+
+    // Cleanup uploaded files
+    await cleanUpFiles();
+
+    // Generate token
     const token = generateToken(user._id);
+
     return res.status(201).json({
-      message: "student registered and verified successfully",
+      message: "Student registered and verified successfully",
       success: true,
       user,
       token,
     });
   } catch (error) {
     console.error("Signup Error:", error.response?.data || error.message);
-    // Ensure the temporary file is deleted even on error
-    if (req.file) {
-      await fs
-        .unlink(req.file.path)
-        .catch((err) => console.error("Failed to delete temp file:", err));
-    }
+    await cleanUpFiles();
     return res
       .status(500)
       .json({ message: "Server error during signup", success: false });
   }
 };
-
 export const userLogin = async(req, res) => {
     try {
       const { email, password , name , role } = req.body;
@@ -219,6 +216,7 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(user._id);
+    await generatequestion(user.collegename);
     return res
       .status(200)
       .json({ message: "User logged in successfully", token , user});

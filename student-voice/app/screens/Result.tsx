@@ -158,7 +158,7 @@ export default function MyBarChart() {
       </View>
 
       {/* Overall Explanation */}
-      {ratings["overall explanation"] && (
+      {(ratings["overall_explanation"] || ratings["overall explanation"]) && (
         <View
           style={{
             marginTop: 16,
@@ -177,7 +177,7 @@ export default function MyBarChart() {
             Overall Explanation
           </Text>
           <Text style={{ fontSize: 14, lineHeight: 20, color: "#333" }}>
-            {ratings["overall explanation"]}
+            {ratings["overall_explanation"] || ratings["overall explanation"]}
           </Text>
         </View>
       )}

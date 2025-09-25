@@ -34,16 +34,30 @@ export default function Home() {
         );
         fetchedColleges = [...fetchedColleges, ...additional];
       }
+
+      // Move user's college to top
+      if (user?.collegename) {
+        fetchedColleges = [
+          user.collegename,
+          ...fetchedColleges.filter((c) => c !== user.collegename),
+        ];
+      }
+
       setColleges(fetchedColleges);
     } catch (err) {
       console.error("Failed to fetch colleges:", err);
       const fallback = CollegeName.slice(0, 5).map((c) =>
         typeof c === "string" ? c : c.name
       );
-      setColleges(fallback);
+
+      // Move user's college to top in fallback too
+      const reorderedFallback = user?.collegename
+        ? [user.collegename, ...fallback.filter((c) => c !== user.collegename)]
+        : fallback;
+
+      setColleges(reorderedFallback);
     }
   };
-
   const guestion = async () => {
     try {
       const res = await axiosInstance.get(`/api/questions/`);
@@ -89,6 +103,7 @@ export default function Home() {
                     isUserCollege ? guestion() : notforyou(college)
                   }
                 >
+                 
                   <Text style={styles.buttonText}>Question</Text>
                 </TouchableOpacity>
 

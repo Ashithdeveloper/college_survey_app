@@ -4,7 +4,13 @@ import React from 'react'
 export default function Rank() {
   return (
     <View>
-      <Text>Rank</Text>
+      <View>
+        <Text>Rank</Text>
+        <View></View>
+        <View></View>
+        <View></View>
+        <View></View>
+      </View>
     </View>
   )
 }
