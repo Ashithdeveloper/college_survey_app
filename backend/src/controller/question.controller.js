@@ -3,24 +3,48 @@ import { configDotenv } from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import User from "../models/user.model.js";
 import Answer from "../models/answersave.js";
+// import saveResult from "./result.controller.js";
 configDotenv();
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 
 export const generatequestion = async (collegename) => {
   try {
     if (!collegename) throw new Error("Please enter collegename");
 
+    // Check if questions already exist
     const existing = await Question.findOne({ collegename });
     if (existing)
       throw new Error("Questions already generated for this college");
 
-    const verificationPrompt = `Please provide questions related to a specified college ${collegename} if and only if the college is known give its appropriate questions otherwise give random questions. Conditions for the questions are:
-      1. Questions should be in the format of questions and options; the last question should allow sharing their own feelings.
-      2. Questions must be in JSON format and jumps should be handled according to answers.
-      3. Questions must cover mental health, skill-development support, placements, training, and skill-based support regarding their college.`;
+    // AI prompt
+    const verificationPrompt = `Please generate a questionnaire for the college ${collegename}. 
+Output must be strictly in valid JSON format as an array of objects. 
+Each question object should have the following structure:
 
-    const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
+{
+  "id": <number>,
+  "question": "<question text>",
+  "type": "<question type: 'multiple_choice' or 'open_ended'>",
+  "options": [
+    {
+      "text": "<option text>",
+      "nextQuestionId": <number or null>
+    },
+    ...
+  ]
+}
+
+Requirements:
+1. Include multiple-choice questions covering mental health, skill-development support, placements, training, and skill-based support.
+2. The last question should be an open-ended question allowing students to provide feedback; for this question, "options" can be an empty array if that is typing for user then give option 1 or enpty and maximum of 20 questions need.    .
+3. Ensure all options are objects with a "text" field, not plain strings.
+4. Use sequential IDs starting from 1 for questions, and proper nextQuestionId values for each option (or null for open-ended question).
+5. Return ONLY valid JSON (no extra text, explanations, or comments).`;
+
+
+    const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
     });
@@ -28,12 +52,23 @@ export const generatequestion = async (collegename) => {
     const aiResponseText = result.response.text();
     console.log("AI raw response:", aiResponseText);
 
+    // Detect first [ or { to handle arrays or objects
+    const firstBracket = aiResponseText.indexOf("[");
+    const lastBracket = aiResponseText.lastIndexOf("]");
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
-    if (firstBrace === -1 || lastBrace === -1)
-      throw new Error("AI did not return valid JSON");
 
-    let jsonString = aiResponseText.slice(firstBrace, lastBrace + 1).trim();
+    let jsonString;
+
+    if (firstBracket !== -1 && lastBracket !== -1) {
+      jsonString = aiResponseText.slice(firstBracket, lastBracket + 1);
+    } else if (firstBrace !== -1 && lastBrace !== -1) {
+      jsonString = aiResponseText.slice(firstBrace, lastBrace + 1);
+    } else {
+      throw new Error("AI did not return valid JSON");
+    }
+
+    // Remove comments and trim
     jsonString = jsonString.replace(/\/\/.*$/gm, "").trim();
 
     let parsedJSON;
@@ -44,18 +79,29 @@ export const generatequestion = async (collegename) => {
       throw new Error("Failed to parse AI response as JSON");
     }
 
-const questionsArray = parsedJSON.questions.map((q, index) => ({
-  id: index + 1,
-  question: q.question || q.text, // fallback if AI used 'text'
-  options:
-    Array.isArray(q.options) && q.options.length
-      ? q.options.map((opt) => ({
-          text: opt.text,
-          nextQuestionId: typeof opt.next === "number" ? opt.next : null,
-        }))
-      : [{ text: "Other (please specify)", nextQuestionId: null }],
-  jump_to: [],
-}));
+    // Handle both array and object with "questions" field
+    const questionsRaw = Array.isArray(parsedJSON)
+      ? parsedJSON
+      : parsedJSON.questions;
+
+    if (!questionsRaw || !questionsRaw.length) {
+      throw new Error("Parsed JSON contains no questions");
+    }
+
+    // Transform AI response to your schema
+    const questionsArray = questionsRaw.map((q, index) => ({
+      id: index + 1,
+      question: q.text || q.question || `Question ${index + 1}`,
+      options:
+        Array.isArray(q.options) && q.options.length
+          ? q.options.map((opt) => ({
+              text: typeof opt === "string" ? opt : opt.text || "Option",
+              nextQuestionId: typeof opt.next === "number" ? opt.next : null,
+            }))
+          : [],
+      jump_to: [],
+    }));
+
     console.log("Transformed questions array:", questionsArray);
 
     const questionDoc = new Question({
@@ -172,36 +218,53 @@ export const saveAnswer = async (req, res) => {
       .json({ success: false, message: "Server error", error: error.message });
   }
 };
-
+export const listModels = async () => {
+  try {
+    const { models } = await genai.listModels();
+    console.log("Available models:");
+    for (const model of models) {
+      console.log(`- ${model.name}`);
+    }
+  } catch (error) {
+    console.error("Error listing models:", error);
+  }
+};
 
 
 export const getresult = async (req, res) => {
   try {
     const { collegename } = req.params;
-    console.log(req.params);
+    listModels();
 
+    // 1️⃣ Guard: collegename required
+    if (!collegename) {
+      return res.status(400).json({
+        success: false,
+        message: "College name is required in the URL",
+      });
+    }
+
+    console.log("Selected college:", collegename);
+    
+
+    // 2️⃣ Fetch answers from DB
     const allAnswers = await Answer.find({ collegename });
-    if (!allAnswers) {
+    console.log("Fetched answers from DB:", allAnswers);
+    if (!allAnswers || allAnswers.length === 0) {
       return res.status(404).json({
         success: false,
-        message: "No feedback found in the database",
+        message: "No answers found in the database for this college",
       });
     }
 
-    if (allAnswers.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No answers found in the database",
-      });
-    }
-
-    // Prepare answers text for AI input
+    // 3️⃣ Prepare answers for AI prompt
     const answersText = allAnswers
-      .map((ans, index) => {
-        return `Student ${index + 1} from "${
-          ans.collegename
-        }": ${JSON.stringify(ans.answers)}`;
-      })
+      .map(
+        (ans, index) =>
+          `Student ${index + 1} from "${ans.collegename}": ${JSON.stringify(
+            ans.answers
+          )}`
+      )
       .join("\n");
 
     const verificationPrompt = `
@@ -219,26 +282,36 @@ export const getresult = async (req, res) => {
         "placement_training": number,
         "skill_training": number,
         "total_score_college": number,
-        "overall explanation": string,
+        "overall explanation": string
       }
     `;
 
-    const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
-  
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
-    });
+    // 4️⃣ Call Google Generative AI
+    let aiResponseText;
+    try {
+     const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
+      console.log("API Key loaded:", process.env.GEMINI_API_KEY ? "Yes" : "No");
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
+      });
+      aiResponseText = result.response.text();
+      console.log("AI Raw Response:", aiResponseText);
+    } catch (aiErr) {
+      console.error("AI Fetch Error:", aiErr);
+      return res.status(500).json({
+        success: false,
+        message: "Error fetching AI result",
+        error: aiErr.message,
+      });
+    }
 
-    const aiResponseText = result.response.text();
-    console.log("AI Raw Response:", aiResponseText);
-
-    // Extract JSON from AI response safely
+    // 5️⃣ Extract JSON safely
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
     if (firstBrace === -1 || lastBrace === -1) {
       return res.status(400).json({
         success: false,
-        message: "AI did not return a valid JSON format",
+        message: "AI did not return a valid JSON",
         raw: aiResponseText,
       });
     }
@@ -256,11 +329,13 @@ export const getresult = async (req, res) => {
       });
     }
 
+    // 6️⃣ Return result
     return res.status(200).json({
       success: true,
       message: "Ratings generated successfully",
       ratings,
     });
+    // await saveResult( ratings.mental_health, ratings.placement_training, ratings.skill_training, ratings.total_score_college, collegename, req.user.id);
   } catch (error) {
     console.error("Get Result Error:", error);
     return res.status(500).json({

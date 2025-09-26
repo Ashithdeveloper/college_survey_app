@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/config/axiosInstance";
@@ -14,14 +15,17 @@ import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
 import { setResultCollege } from "@/Redux/Slices/resultCollege";
 
+
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
   const router = useRouter();
   const user = useSelector((state: any) => state.auth.user);
 
   const getAllCollege = async () => {
     try {
+      setIsLoading(true);
       const res = await axiosInstance.get<string[]>(
         "/api/questions/allcollege"
       );
@@ -44,6 +48,7 @@ export default function Home() {
       }
 
       setColleges(fetchedColleges);
+      setIsLoading(false);
     } catch (err) {
       console.error("Failed to fetch colleges:", err);
       const fallback = CollegeName.slice(0, 5).map((c) =>
@@ -56,19 +61,26 @@ export default function Home() {
         : fallback;
 
       setColleges(reorderedFallback);
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
   const guestion = async () => {
     try {
+      setIsLoading(true);
       const res = await axiosInstance.get(`/api/questions/`);
       if (res.status === 200) {
         console.log("res.data:", JSON.stringify(res.data, null, 2));
         dispatch(setQuestion(res.data.question));
         router.push("/screens/Question");
+        setIsLoading(false);
       }
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching question:", error);
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
 
   const notforyou = (college: string) => {
@@ -81,6 +93,11 @@ export default function Home() {
   useEffect(() => {
     getAllCollege();
   }, []);
+  if(isLoading){
+    return <View className="flex-1 items-center justify-center px-4 bg-white">
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+  }
 
   return (
     <View className="bg-white flex-1">

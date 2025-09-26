@@ -17,17 +17,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { getUserDetails } from "@/Redux/Slices/authSlice";
 import axiosInstance from "@/config/axiosInstance";
+import { ActivityIndicator } from "react-native";
 
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [ passwordVisible, setPasswordVisible] = useState(true);
+  const [ loading  , setLoading] = useState(false);
    const router = useRouter();
    const dispatch = useDispatch();
    //Login Function 
   const handleLogin = async () => {
     try {
+      setLoading(true);
       if(!email || !password) return alert("All fields are required");
       const response = await axiosInstance.post(
         `/api/user/login`,
@@ -45,10 +48,19 @@ export default function Login() {
         router.replace("/(tabs)");
         setEmail("");
         setPassword("");
+        setLoading(false);
       }
     } catch (error) {
       console.error(error);
     }
+    setLoading(false);
+  }
+  if(loading) {
+    return (
+      <View className="flex-1 items-center justify-center px-4 bg-white">
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
   
   return (

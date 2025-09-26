@@ -55,7 +55,7 @@ export default function MyBarChart() {
   }
 
   if (!data || !data.ratings) {
-    Alert.alert("Error", "No data available");
+    Alert.alert("Error", "No data available" + collegename);
     router.back();
     return null;
   }

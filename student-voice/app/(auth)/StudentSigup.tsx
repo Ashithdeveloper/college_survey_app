@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { getUserDetails } from "@/Redux/Slices/authSlice";
 import axiosInstance from "@/config/axiosInstance";
+import { ActivityIndicator } from "react-native";
 
 export default function StudentSignup() {
   const [name, setName] = useState("");
@@ -28,6 +29,7 @@ export default function StudentSignup() {
   const [imagePick, setImagePick] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const dispatch = useDispatch();
@@ -83,6 +85,7 @@ export default function StudentSignup() {
       ) {
         return alert("All fields are required");
       }
+      setIsLoading(true);
 
       const formData = new FormData();
       formData.append("name", name);
@@ -129,7 +132,13 @@ export default function StudentSignup() {
       console.error(error);
       Alert.alert("Error", "Something went wrong");
     }
+    finally {
+      setIsLoading(false);
+    }
   };
+  if(isLoading) return <View className="flex-1 items-center justify-center bg-white">
+    <ActivityIndicator  size="large" color="blue" />
+  </View>
 
   return (
     <KeyboardAwareScrollView

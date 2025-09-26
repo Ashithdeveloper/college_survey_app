@@ -15,6 +15,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch } from "react-redux";
 
@@ -23,6 +24,7 @@ export default function UserSigup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -31,6 +33,7 @@ export default function UserSigup() {
       if (!userName || !email || !password) {
         return Alert.alert("Error", "All fields are required");
       }
+      setIsLoading(true);
       const response = await axiosInstance.post(`/api/user/userlogin`, {
         name: userName,
         email,
@@ -49,8 +52,15 @@ export default function UserSigup() {
       }
     } catch (error) {
       console.error(error);
+    }finally{
+      setIsLoading(false);
     }
+    setIsLoading(false);
   };
+   if(isLoading) return <View className="flex-1 items-center justify-center bg-white">
+      <ActivityIndicator  size="large" color="blue" />
+    </View>
+  
 
   return (
     <KeyboardAvoidingView

@@ -87,7 +87,7 @@ export const signup = async (req, res) => {
     `;
 
     // Send multimodal request to Gemini
-    const model = genai.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent({
       contents: [
         {

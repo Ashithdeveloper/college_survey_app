@@ -25,7 +25,8 @@ export default function QuestionScreen() {
   }
 
   const currentQuestion = select.questions[currentIndex];
-  const onlyCustomInput = currentQuestion.options.length === 1;
+  const hasOptions =
+    currentQuestion.options && currentQuestion.options.length > 0;
 
   // Handle typing in the input box
   const handleInputChange = (text: string) => {
@@ -130,7 +131,8 @@ export default function QuestionScreen() {
             {currentIndex + 1}. {currentQuestion.question}
           </Text>
 
-          {onlyCustomInput ? (
+          {/* If no options or only one option, render input */}
+          {!hasOptions || currentQuestion.options.length === 1 ? (
             <TextInput
               placeholder="Enter your answer"
               value={customInputs[currentIndex] || ""}

@@ -19,6 +19,8 @@ job.start();
 
 app.get("/", (req, res) => res.send("Server is running"));
 
+
+
 const PORT = process.env.PORT || 3001;
 
 connectDB()
