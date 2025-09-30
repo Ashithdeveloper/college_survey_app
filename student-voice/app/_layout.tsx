@@ -4,10 +4,12 @@ import { SafeAreaProvider, SafeAreaView, } from "react-native-safe-area-context"
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiUrl } from "@/config/ApiUrl";
+import { StatusBar } from "expo-status-bar";
 import axiosInstance from "@/config/axiosInstance";
 import { Provider } from "react-redux";
 import { store } from "@/Redux/Store/store";
 import { getUserDetails } from "@/Redux/Slices/authSlice";
+
 
 export default function RootLayout() {
   const router = useRouter();
@@ -58,6 +60,7 @@ export default function RootLayout() {
           <Stack.Screen name="screens" />
         </Stack>
       </SafeAreaView>
+      <StatusBar style="auto" />
     </SafeAreaProvider>
     </Provider>
   );
