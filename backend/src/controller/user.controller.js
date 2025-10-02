@@ -77,14 +77,43 @@ export const signup = async (req, res) => {
 
     // AI verification prompt
     const verificationPrompt = `
-      You are a verification expert. Check if the text details match the student ID card and live selfie image.
-      Details:
-      Name: "${name}"
-      College ID: "${collegeId}"
-      College Name: "${collegename}"
+You are an identity verification expert. Verify whether the provided text details match the student ID card and the live selfie image.
 
-      Respond with JSON: {"verified": true} if valid, else {"verified": false, "reason": "Explain the discrepancy", "verifiedDetails": { ... }}
-    `;
+Check for:
+1. Name consistency
+2. College ID correctness
+3. College name accuracy
+4. Face match between ID card photo and live selfie
+
+Details to verify:
+- Name: "${name}"
+- College ID: "${collegeId}"
+- College Name: "${collegename}"
+
+Respond only in valid JSON format:
+{
+  "verified": true,
+  "verifiedDetails": {
+    "name": "Matched or Not",
+    "collegeId": "Matched or Not",
+    "collegeName": "Matched or Not",
+    "faceMatch": "Matched or Not"
+  }
+}
+
+If any mismatch occurs, respond with:
+{
+  "verified": false,
+  "reason": "Explain the exact discrepancy",
+  "verifiedDetails": {
+    "name": "...",
+    "collegeId": "...",
+    "collegeName": "...",
+    "faceMatch": "..."
+  }
+}
+`;
+
 
     // Send multimodal request to Gemini
     const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });

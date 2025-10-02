@@ -290,7 +290,7 @@ export const getresult = async (req, res) => {
     let aiResponseText;
     try {
      const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
-      console.log("API Key loaded:", process.env.GEMINI_API_KEY ? "Yes" : "No");
+      
       const result = await model.generateContent({
         contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
       });
