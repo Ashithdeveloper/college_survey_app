@@ -26,6 +26,8 @@ async function fileToGenerativePart(filePath, mimeType) {
   }
 }
 
+
+// Function to handle user signup
 export const signup = async (req, res) => {
   const liveselfie = req.files["liveselfie"]?.[0];
   const idCard = req.files["idCard"]?.[0];

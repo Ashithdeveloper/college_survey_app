@@ -9,6 +9,7 @@ import {
   Image,
   Button,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
@@ -18,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { getUserDetails } from "@/Redux/Slices/authSlice";
 import axiosInstance from "@/config/axiosInstance";
-import { ActivityIndicator } from "react-native";
+
 
 export default function StudentSignup() {
   const [name, setName] = useState("");
