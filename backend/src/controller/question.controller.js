@@ -3,6 +3,7 @@ import { configDotenv } from "dotenv";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import User from "../models/user.model.js";
 import Answer from "../models/answersave.js";
+import { getresult } from "./result.controller.js";
 // import saveResult from "./result.controller.js";
 configDotenv();
 
@@ -172,7 +173,6 @@ export const saveAnswer = async (req, res) => {
     const { collegename, answers } = req.body;
     const userId = req.user.id; // from auth middleware
     console.log(req.body);
-
     // Validate inputs
     if (
       !collegename ||
@@ -207,7 +207,7 @@ export const saveAnswer = async (req, res) => {
     });
 
     await newAnswer.save();
-
+    getresult(collegename, userId);
     return res
       .status(200)
       .json({ success: true, message: "Answer saved successfully." });
@@ -231,117 +231,3 @@ export const listModels = async () => {
 };
 
 
-export const getresult = async (req, res) => {
-  try {
-    const { collegename } = req.params;
-    listModels();
-
-    // 1️⃣ Guard: collegename required
-    if (!collegename) {
-      return res.status(400).json({
-        success: false,
-        message: "College name is required in the URL",
-      });
-    }
-
-    console.log("Selected college:", collegename);
-    
-
-    // 2️⃣ Fetch answers from DB
-    const allAnswers = await Answer.find({ collegename });
-    console.log("Fetched answers from DB:", allAnswers);
-    if (!allAnswers || allAnswers.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No answers found in the database for this college",
-      });
-    }
-
-    // 3️⃣ Prepare answers for AI prompt
-    const answersText = allAnswers
-      .map(
-        (ans, index) =>
-          `Student ${index + 1} from "${ans.collegename}": ${JSON.stringify(
-            ans.answers
-          )}`
-      )
-      .join("\n");
-
-    const verificationPrompt = `
-      According to the selected options for the questions, give a rating (0–100) for these categories:
-      - mental health
-      - placement training
-      - skill training
-
-      Here are the collected student answers:
-      ${answersText}
-
-      Provide the output as valid JSON in this format only:
-      {
-        "mental_health": number,
-        "placement_training": number,
-        "skill_training": number,
-        "total_score_college": number,
-        "overall explanation": string
-      }
-    `;
-
-    // 4️⃣ Call Google Generative AI
-    let aiResponseText;
-    try {
-     const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
-      
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],
-      });
-      aiResponseText = result.response.text();
-      console.log("AI Raw Response:", aiResponseText);
-    } catch (aiErr) {
-      console.error("AI Fetch Error:", aiErr);
-      return res.status(500).json({
-        success: false,
-        message: "Error fetching AI result",
-        error: aiErr.message,
-      });
-    }
-
-    // 5️⃣ Extract JSON safely
-    const firstBrace = aiResponseText.indexOf("{");
-    const lastBrace = aiResponseText.lastIndexOf("}");
-    if (firstBrace === -1 || lastBrace === -1) {
-      return res.status(400).json({
-        success: false,
-        message: "AI did not return a valid JSON",
-        raw: aiResponseText,
-      });
-    }
-
-    let ratings;
-    try {
-      const jsonString = aiResponseText.slice(firstBrace, lastBrace + 1).trim();
-      ratings = JSON.parse(jsonString);
-    } catch (parseErr) {
-      console.error("JSON Parse Error:", parseErr.message);
-      return res.status(400).json({
-        success: false,
-        message: "Failed to parse AI response as JSON",
-        raw: aiResponseText,
-      });
-    }
-
-    // 6️⃣ Return result
-    return res.status(200).json({
-      success: true,
-      message: "Ratings generated successfully",
-      ratings,
-    });
-    // await saveResult( ratings.mental_health, ratings.placement_training, ratings.skill_training, ratings.total_score_college, collegename, req.user.id);
-  } catch (error) {
-    console.error("Get Result Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message,
-    });
-  }
-};

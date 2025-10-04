@@ -33,10 +33,11 @@ export default function MyBarChart() {
       );
       if (res.status === 200) {
         console.log("Backend response:", res.data);
-        setData(res.data);
+        setData(res.data.result);
       }
     } catch (error) {
       console.log("Error fetching result:", error);
+      Alert.alert("Error", "Failed to fetch result");
     } finally {
       setLoading(false);
     }
@@ -54,20 +55,31 @@ export default function MyBarChart() {
     );
   }
 
-  if (!data || !data.ratings) {
-    Alert.alert("Error", "No data available" + collegename);
+  if (!data || !data.results) {
+    Alert.alert("Error", "No data available for " + collegename);
     router.back();
     return null;
   }
 
-  const { ratings } = data;
+  const ratings = data.results;
 
   const ratingItems = [
     { label: "Placement", value: ratings.placement_training, color: "#FF6384" },
     { label: "Mental Health", value: ratings.mental_health, color: "#36A2EB" },
-    { label: "Skill Training", value: ratings.skill_training, color: "#FFCE56" },
-    { label: "Total_Score", value: ratings.total_score_college, color: "#4BC0C0" },
+    {
+      label: "Skill Training",
+      value: ratings.skill_training,
+      color: "#FFCE56",
+    },
+    {
+      label: "Total Score",
+      value: ratings.total_score_college,
+      color: "#4BC0C0",
+    },
   ];
+
+  const overallExplanation =
+    ratings["overall_explanation"] || ratings["overall explanation"];
 
   return (
     <ScrollView style={{ flex: 1, padding: 16, backgroundColor: "#f9fafb" }}>
@@ -96,8 +108,8 @@ export default function MyBarChart() {
             },
           ],
         }}
-        width={screenWidth - 28} // more padding to prevent overflow
-        height={350} // increased height
+        width={screenWidth - 32}
+        height={350}
         fromZero
         yAxisLabel=""
         yAxisSuffix=""
@@ -111,7 +123,7 @@ export default function MyBarChart() {
           color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           propsForBackgroundLines: { stroke: "#e3e3e3" },
-          propsForLabels: { fontSize: 12 }, // smaller labels
+          propsForLabels: { fontSize: 12 },
         }}
         style={{ marginVertical: 16, borderRadius: 16 }}
       />
@@ -158,7 +170,7 @@ export default function MyBarChart() {
       </View>
 
       {/* Overall Explanation */}
-      {(ratings["overall_explanation"] || ratings["overall explanation"]) && (
+      {overallExplanation && (
         <View
           style={{
             marginTop: 16,
@@ -177,7 +189,7 @@ export default function MyBarChart() {
             Overall Explanation
           </Text>
           <Text style={{ fontSize: 14, lineHeight: 20, color: "#333" }}>
-            {ratings["overall_explanation"] || ratings["overall explanation"]}
+            {overallExplanation}
           </Text>
         </View>
       )}
