@@ -25,13 +25,18 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [ passwordVisible, setPasswordVisible] = useState(true);
   const [ loading  , setLoading] = useState(false);
+  const [ error, setError] = useState("");
    const router = useRouter();
    const dispatch = useDispatch();
    //Login Function 
   const handleLogin = async () => {
     try {
       setLoading(true);
-      if(!email || !password) return alert("All fields are required");
+      if(!email || !password) {
+        setLoading(false);
+        return alert("All fields are required")
+
+      }
       const response = await axiosInstance.post(
         `/api/user/login`,
         {
@@ -50,8 +55,12 @@ export default function Login() {
         setPassword("");
         setLoading(false);
       }
-    } catch (error) {
+    } catch (error : any) {
       console.error(error);
+      const errorMessage = error.response.data.message;
+      setError(errorMessage);
+    }finally{
+      setLoading(false);
     }
     setLoading(false);
   }
@@ -108,6 +117,9 @@ export default function Login() {
               className="border border-gray-300 rounded-lg px-3 py-4 bg-gray-50"
               secureTextEntry={passwordVisible}
             />
+          </View>
+          <View className="items-center" >
+            {error && <Text className=" text-red-500 mb-2 justify-center">{error}</Text>}
           </View>
           {/* show password checkbox */}
           <Pressable

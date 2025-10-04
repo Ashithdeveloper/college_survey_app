@@ -112,6 +112,8 @@ export default function StudentSignup() {
       const response = await axiosInstance.post(`/api/user/signup`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      if (response.status === 400)
+        return Alert.alert("Error", `${response.data.message}`);
 
       if (response.status === 201) {
         Alert.alert("Success", "Signup successful");
@@ -128,12 +130,39 @@ export default function StudentSignup() {
         setImagePick(false);
         setImage(null);
         setSelfie(null);
+      } else {
+        if (response.status === 400)
+          return Alert.alert("Error", "user already exist");
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Something went wrong");
-    }
-    finally {
+    } catch (error: any) {
+      console.error("Signup Error:", error?.response?.data || error.message);
+
+      if (error.response) {
+        // Server responded with a status code
+        const status = error.response.status;
+        const message = error.response.data?.message || "Something went wrong";
+
+        if (status === 400 && message.includes("User already exists")) {
+          Alert.alert("Error", "User already exists");
+        } else if (status === 400 && message.includes("Verification failed")) {
+          Alert.alert(
+            "Error",
+            "AI verification failed. Please retake your photo and ID card clearly."
+          );
+        } else {
+          Alert.alert("Error", message);
+        }
+      } else if (error.request) {
+        // No response from server
+        Alert.alert(
+          "Error",
+          "No response from server. Please try again later."
+        );
+      } else {
+        // Something else (like network or axios config)
+        Alert.alert("Error", error.message);
+      }
+    } finally {
       setIsLoading(false);
     }
   };

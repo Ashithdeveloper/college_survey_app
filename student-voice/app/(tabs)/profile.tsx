@@ -10,7 +10,6 @@ export default function Profile() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-
   if (!user) {
     return (
       <View style={styles.center}>
@@ -33,10 +32,11 @@ export default function Profile() {
   return (
     <ScrollView contentContainerStyle={styles.container} className="bg-white">
       <View style={styles.card}>
-        <Image
-          source={require("../../assets/images/boyspeaking.png")}
-          style={styles.image}
-        />
+{/**For Profile Picture */}
+          <Image
+            source={require("../../assets/images/boyspeaking.png")}
+            style={styles.image}
+          />
         <View className="w-full">
           <View className="flex-row ">
             <Text className="font-bold text-lg mb-2">Name: </Text>
@@ -67,7 +67,9 @@ export default function Profile() {
           </View>
           <View className="flex-row mb-2">
             <Text className="font-bold text-lg">Date: </Text>
-            <Text className="font-semibold text-lg">{user.createdAt.split("T")[0]}</Text>
+            <Text className="font-semibold text-lg">
+              {user.createdAt.split("T")[0]}
+            </Text>
           </View>
 
           <View className="flex-row ">

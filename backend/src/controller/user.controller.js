@@ -65,6 +65,7 @@ export const signup = async (req, res) => {
     });
     if (existingUser) {
       await cleanUpFiles();
+      console.log("User already exists");
       return res
         .status(400)
         .json({ message: "User already exists", success: false });
@@ -243,11 +244,10 @@ export const login = async (req, res) => {
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid password or email" });
     }
 
     const token = generateToken(user._id);
-    await generatequestion(user.collegename);
     return res
       .status(200)
       .json({ message: "User logged in successfully", token , user});
