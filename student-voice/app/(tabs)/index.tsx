@@ -15,6 +15,9 @@ import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
 import { setResultCollege } from "@/Redux/Slices/resultCollege";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { removeUserDetails } from "@/Redux/Slices/authSlice";
+import { Button } from "@react-navigation/elements";
 
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
@@ -85,7 +88,15 @@ export default function Home() {
     router.push("/screens/Result");
     dispatch(setResultCollege(College));
   };
-
+  // const logout = async () => {
+  //   try {
+  //     await AsyncStorage.removeItem("userToken");
+  //     router.replace("/(auth)/Login");
+  //     dispatch(removeUserDetails());
+  //   } catch (error) {
+  //     console.error("Error removing token:", error);
+  //   }
+  // }
   useEffect(() => {
     getAllCollege();
   }, []);
@@ -112,6 +123,9 @@ export default function Home() {
           paddingHorizontal: 10,
         }}
       >
+        {/* <Button>
+          <Ionicons name="log-out-outline" size={24} color="black" onPress={logout} />
+        </Button> */}
         {/* 🔹 Your College Section */}
         {userCollege.length > 0 && (
           <View className="w-full mb-2">

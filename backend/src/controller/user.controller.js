@@ -79,14 +79,16 @@ export const signup = async (req, res) => {
     const idCardPart = await fileToGenerativePart(idCard.path, idCard.mimetype);
 
     // AI verification prompt
-    const verificationPrompt = `
-You are an identity verification expert. Verify whether the provided text details match the student ID card and the live selfie image.
+ const verificationPrompt = `
+You are an identity verification expert. Verify whether the provided text details match the college student ID card and the live selfie image.
 
 Check for:
-1. Name consistency
-2. College ID correctness
-3. College name accuracy
-4. Face match between ID card photo and live selfie
+1. Confirm that the provided ID card is a college student ID card. If it is not, reject it with a response.
+2. Name consistency
+3. College ID correctness
+4. College name accuracy
+5. Face comparison between ID card photo and live selfie
+6. Any other discrepancies 
 
 Details to verify:
 - Name: "${name}"
@@ -124,7 +126,13 @@ If any mismatch occurs, respond with:
       contents: [
         {
           role: "user",
-          parts: [{ text: verificationPrompt }, liveselfiePart, idCardPart],
+          parts: [
+            { text: verificationPrompt },
+            { text: "Live Selfie Image:" },
+            liveselfiePart,
+            { text: "ID Card Image:" },
+            idCardPart,
+          ],
         },
       ],
     });
