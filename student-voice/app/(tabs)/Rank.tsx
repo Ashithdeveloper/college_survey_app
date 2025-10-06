@@ -17,9 +17,23 @@ export default function Rank() {
     return 70 + Math.floor(Math.random() * 26);
   };
 
+  const getRankLabel = (index: number) => {
+    switch (index) {
+      case 0:
+        return "🥇";
+      case 1:
+        return "🥈";
+      case 2:
+        return "🥉";
+      default:
+        return `#${index + 1}`;
+    }
+  };
+
   return (
-    <View className="flex-1 p-4 px-5 pb-0 bg-slate-300">
-      <Text className="text-2xl font-bold mb-6 text-center">
+    <View className="flex-1 bg-white px-5 py-4 pb-0">
+      {/* Title */}
+      <Text className="text-3xl font-extrabold text-center text-gray-800 mb-6">
         College Rankings
       </Text>
 
@@ -27,21 +41,64 @@ export default function Rank() {
         data={sortedColleges}
         keyExtractor={(_, index) => index.toString()}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item, index }) => (
-          <View className="flex-row justify-between items-center p-4 mb-3 bg-white rounded-xl shadow-lg">
-            <View className="flex-1 mr-4">
-              <Text className="text-lg font-semibold flex-wrap">
-                {item.name}
-              </Text>
-              <Text className="text-gray-500">{item.location}</Text>
+        contentContainerStyle={{ paddingBottom: 30 }}
+        renderItem={({ item, index }) => {
+          const isUserCollege =
+            item.name === "Mar Ephraem College of Engineering and Technology";
+          const score = getDummyMark(index);
+
+          return (
+            <View
+              className={`flex-row justify-between items-center p-5 mb-4 rounded-xl shadow-sm ${
+                isUserCollege
+                  ? "bg-blue-600 shadow-blue-300"
+                  : "bg-white shadow-gray-200"
+              }`}
+            >
+              {/* Left Side: College Info */}
+              <View className="flex-1 mr-4">
+                <View className="flex-row items-center mb-1">
+                  <Text
+                    className={`text-xl font-bold ${
+                      isUserCollege ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {getRankLabel(index)}
+                  </Text>
+                  <Text
+                    className={`ml-2 text-lg font-semibold ${
+                      isUserCollege ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {item.name}
+                  </Text>
+                </View>
+                <Text
+                  className={`text-sm ${
+                    isUserCollege ? "text-blue-200" : "text-gray-500"
+                  }`}
+                >
+                  {item.location}
+                </Text>
+              </View>
+
+              {/* Right Side: Score Badge */}
+              <View
+                className={`px-4 py-2 rounded-full ${
+                  isUserCollege ? "bg-white" : "bg-blue-500"
+                }`}
+              >
+                <Text
+                  className={`font-bold text-lg ${
+                    isUserCollege ? "text-blue-600" : "text-white"
+                  }`}
+                >
+                  {score}%
+                </Text>
+              </View>
             </View>
-            <View className="bg-blue-500 px-4 py-2 rounded-lg">
-              <Text className="text-white font-bold text-lg">
-                {getDummyMark(index)}%
-              </Text>
-            </View>
-          </View>
-        )}
+          );
+        }}
       />
     </View>
   );

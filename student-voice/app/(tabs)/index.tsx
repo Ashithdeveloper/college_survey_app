@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
 import { setResultCollege } from "@/Redux/Slices/resultCollege";
-
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
@@ -26,9 +26,7 @@ export default function Home() {
   const getAllCollege = async () => {
     try {
       setIsLoading(true);
-      const res = await axiosInstance.get<string[]>(
-        "/api/questions/allcollege"
-      );
+      const res = await axiosInstance.get<string[]>("/api/questions/allcollege");
       let fetchedColleges = res.data || [];
 
       if (fetchedColleges.length < 5) {
@@ -48,92 +46,168 @@ export default function Home() {
       }
 
       setColleges(fetchedColleges);
-      setIsLoading(false);
     } catch (err) {
       console.error("Failed to fetch colleges:", err);
       const fallback = CollegeName.slice(0, 5).map((c) =>
         typeof c === "string" ? c : c.name
       );
 
-      // Move user's college to top in fallback too
       const reorderedFallback = user?.collegename
         ? [user.collegename, ...fallback.filter((c) => c !== user.collegename)]
         : fallback;
 
       setColleges(reorderedFallback);
+    } finally {
       setIsLoading(false);
     }
-    setIsLoading(false);
   };
-  const guestion = async () => {
+
+  const question = async () => {
     try {
       setIsLoading(true);
       const res = await axiosInstance.get(`/api/questions/`);
       if (res.status === 200) {
-        console.log("res.data:", JSON.stringify(res.data, null, 2));
         dispatch(setQuestion(res.data.question));
         router.push("/screens/Question");
-        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching question:", error);
+    } finally {
       setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
-  const notforyou = (college: string) => {
+  const notForYou = (college: string) => {
     Alert.alert("Notice", `This question is only for ${college}.`);
   };
+
   const result = (College: string) => {
     router.push("/screens/Result");
     dispatch(setResultCollege(College));
   };
+
   useEffect(() => {
     getAllCollege();
   }, []);
-  if(isLoading){
-    return <View className="flex-1 items-center justify-center px-4 bg-white">
-            <ActivityIndicator size="large" color="#0000ff" />
-          </View>
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center px-4 bg-white">
+        <ActivityIndicator size="large" color="#22c55e" />
+      </View>
+    );
   }
+
+  const userCollege = user?.collegename
+    ? colleges.filter((c) => c === user.collegename)
+    : [];
+  const otherColleges = colleges.filter((c) => c !== user?.collegename);
 
   return (
     <View className="bg-white flex-1">
       <ScrollView
-        contentContainerStyle={{ alignItems: "center", paddingVertical: 20 }}
+        contentContainerStyle={{
+          alignItems: "center",
+          paddingVertical: 20,
+          paddingHorizontal: 10,
+        }}
       >
-        {colleges.map((college, index) => {
-          const isUserCollege = user?.collegename === college;
-          return (
-            <View key={index} style={styles.card}>
-              <Text style={styles.collegeName}>{college}</Text>
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    { backgroundColor: isUserCollege ? "#2563eb" : "#9ca3af" },
-                  ]}
-                  onPress={() =>
-                    isUserCollege ? guestion() : notforyou(college)
-                  }
-                >
-                 
-                  <Text style={styles.buttonText}>Question</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.button, { backgroundColor: "#22c55e" }]}
-                  onPress={() => result(college)}
-                >
-                  <Text style={styles.buttonText}>Result</Text>
-                </TouchableOpacity>
-              </View>
+        {/* 🔹 Your College Section */}
+        {userCollege.length > 0 && (
+          <View className="w-full mb-2">
+            <View className="bg-green-100 border-l-4 border-green-600 p-3 rounded-md mb-4">
+              <Text className="text-lg font-bold text-green-800">
+                🎓 Your College
+              </Text>
+              <Text className="text-sm text-green-700">
+                Participate in your college’s survey and view results
+              </Text>
             </View>
-          );
-        })}
+
+            {userCollege.map((college, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.card,
+                  { borderColor: "#22c55e", borderWidth: 1.2 },
+                ]}
+              >
+                <Text style={[styles.collegeName, { color: "#166534" }]}>
+                  {college}
+                </Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    onPress={() => question()}
+                    className="flex-1 mx-[5px] py-3 rounded-[10px] items-center border border-green-600 flex-row justify-center gap-2"
+                  >
+                    <Ionicons name="pencil" size={15} color="black" />
+                    <Text className="text-black font-bold text-[15px]">
+                      Question
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="flex-1 mx-[5px] py-3 rounded-[10px] items-center bg-[#22c55e] flex-row justify-center gap-2"
+                    onPress={() => result(college)}
+                  >
+                    <Ionicons name="stats-chart" size={15} color="#fff" />
+                    <Text style={styles.buttonText}>Result</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* 🔹 Other Colleges Section */}
+        {otherColleges.length > 0 && (
+          <View className="w-full">
+            <View className="bg-blue-100 border-l-4 border-blue-600 p-3 rounded-md mb-4">
+              <Text className="text-lg font-bold text-blue-800">
+                {/**for see user view and student view */}
+                {userCollege.length > 0
+                  ? "🏫 Other Colleges"
+                  : "🏫 Colleges"}
+              </Text>
+              <Text className="text-sm text-blue-700">
+                View results and updates from other colleges
+              </Text>
+            </View>
+
+            {otherColleges.map((college, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.card,
+                  { borderColor: "#60a5fa", borderWidth: 1 },
+                ]}
+              >
+                <Text style={[styles.collegeName, { color: "#1e3a8a" }]}>
+                  {college}
+                </Text>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    onPress={() => notForYou(college)}
+                    className="flex-1 mx-[5px] py-3 rounded-[10px] items-center bg-gray-300 border border-white flex-row justify-center gap-2"
+                  >
+                    <Ionicons name="pencil" size={15} color="black" />
+                    <Text className="text-black font-bold text-[15px]">
+                      Question
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    className="flex-1 mx-[5px] py-3 rounded-[10px] items-center bg-blue-500 flex-row justify-center gap-2"
+                    onPress={() => result(college)}
+                  >
+                    <Ionicons name="stats-chart" size={15} color="#fff" />
+                    <Text style={styles.buttonText}>Result</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -141,7 +215,7 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   card: {
-    width: "90%",
+    width: "100%",
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
@@ -149,26 +223,18 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
     alignItems: "center",
   },
   collegeName: {
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 15,
-    color: "#111827",
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-  },
-  button: {
-    flex: 1,
-    marginHorizontal: 5,
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
   },
   buttonText: {
     color: "#fff",
