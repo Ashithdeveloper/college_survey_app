@@ -44,7 +44,6 @@ Requirements:
 4. Use sequential IDs starting from 1 for questions, and proper nextQuestionId values for each option (or null for open-ended question).
 5. Return ONLY valid JSON (no extra text, explanations, or comments).`;
 
-
     const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: verificationPrompt }] }],

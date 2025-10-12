@@ -170,6 +170,7 @@ export default function StudentSignup() {
     <ActivityIndicator  size="large" color="blue" />
   </View>
 
+
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={styles.scrollContainer}

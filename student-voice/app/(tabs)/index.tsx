@@ -15,9 +15,6 @@ import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
 import { setResultCollege } from "@/Redux/Slices/resultCollege";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { removeUserDetails } from "@/Redux/Slices/authSlice";
-import { Button } from "@react-navigation/elements";
 
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
