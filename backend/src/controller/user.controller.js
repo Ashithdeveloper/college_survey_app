@@ -87,10 +87,7 @@ Check for:
 2. Name consistency
 3. College ID correctness
 4. College name accuracy
-5. Very carefully check if the person’s face in the student ID card and the selfie are the same person. 
-   Consider the shape of the face, eyes, eyebrows, nose, lips, and skin tone. 
-   Ignore lighting or background. 
-   Respond "Matched" only if you are 95% sure that both faces belong to the same person.
+5. Face comparison between ID card photo and live selfie
 6. Any other discrepancies 
 
 Details to verify:
