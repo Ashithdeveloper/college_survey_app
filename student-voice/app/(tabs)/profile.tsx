@@ -1,14 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { removeUserDetails } from "@/Redux/Slices/authSlice";
+import useUserStore from "@/Zustand/store/authStore";
 
 export default function Profile() {
-  const user = useSelector((state: any) => state.auth.user);
+  // const user = useSelector((state: any) => state.auth.user);
   const router = useRouter();
-  const dispatch = useDispatch();
+  const { user , clearUser } = useUserStore()
+  console.log(user);
 
   if (!user) {
     return (
@@ -21,9 +20,8 @@ export default function Profile() {
   
   const logout = async () =>{
     try {
-      await AsyncStorage.removeItem('userToken');
+      clearUser();
       router.replace('/(auth)/Login')
-      dispatch(removeUserDetails())
     } catch (error) {
       console.error('Error removing token:', error);
     }

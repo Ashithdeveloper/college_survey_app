@@ -2,22 +2,20 @@ import { Stack, useRouter } from "expo-router";
 import "../global.css";
 import { SafeAreaProvider, SafeAreaView, } from "react-native-safe-area-context";
 import { useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ApiUrl } from "@/config/ApiUrl";
 import { StatusBar } from "expo-status-bar";
 import axiosInstance from "@/config/axiosInstance";
-import { Provider } from "react-redux";
-import { store } from "@/Redux/Store/store";
-import { getUserDetails } from "@/Redux/Slices/authSlice";
+
+import useUserStore from "@/Zustand/store/authStore";
 
 
 export default function RootLayout() {
   const router = useRouter();
+  const { setUser , token , clearUser  } = useUserStore();
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const token = await AsyncStorage.getItem("userToken");
+        // const token = await AsyncStorage.getItem("userToken");
 
         if (!token) {
           router.replace("/(auth)/Login");
@@ -29,11 +27,9 @@ export default function RootLayout() {
 
         if (res.status === 200) {
           router.replace("/(tabs)");
-          store.dispatch(getUserDetails(res.data));
-          console.log()
-          
-        } else {
-          await AsyncStorage.removeItem("userToken"); 
+          setUser(res.data)
+        } else {;
+          clearUser();
           router.replace("/(auth)/Login");
         }
       } catch (error) {
@@ -43,14 +39,13 @@ export default function RootLayout() {
     };
 
     getData();
-  }, []);
-
+  }, [token]);
   return (
-    <Provider store={store}>
     <SafeAreaProvider>
       <SafeAreaView
         style={{
           flex: 1,
+          backgroundColor: "white",
         }}
         edges={["top" ,"left", "right"]}
       >
@@ -62,6 +57,5 @@ export default function RootLayout() {
       </SafeAreaView>
       <StatusBar style="auto" />
     </SafeAreaProvider>
-    </Provider>
   );
 }

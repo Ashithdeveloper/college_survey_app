@@ -10,19 +10,18 @@ import {
 import React, { useEffect, useState } from "react";
 import axiosInstance from "@/config/axiosInstance";
 import { CollegeName } from "@/config/CollegeName";
-import { useDispatch, useSelector } from "react-redux";
-import { setQuestion } from "@/Redux/Slices/questionSlice";
 import { useRouter } from "expo-router";
-import { setResultCollege } from "@/Redux/Slices/resultCollege";
 import { Ionicons } from "@expo/vector-icons";
+import useQuestionStore from "@/Zustand/store/question";
+import useUserStore from "@/Zustand/store/authStore";
 
 export default function Home() {
   const [colleges, setColleges] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const dispatch = useDispatch();
   const router = useRouter();
-  const user = useSelector((state: any) => state.auth.user);
-
+  const { setQuestion , setCollege } = useQuestionStore();
+  const { user } = useUserStore();
+ 
   const getAllCollege = async () => {
     try {
       setIsLoading(true);
@@ -67,7 +66,7 @@ export default function Home() {
       setIsLoading(true);
       const res = await axiosInstance.get(`/api/questions/`);
       if (res.status === 200) {
-        dispatch(setQuestion(res.data.question));
+        setQuestion(res.data.question);
         router.push("/screens/Question");
       }
     } catch (error) {
@@ -83,7 +82,7 @@ export default function Home() {
 
   const result = (College: string) => {
     router.push("/screens/Result");
-    dispatch(setResultCollege(College));
+    setCollege(College);
   };
   // const logout = async () => {
   //   try {

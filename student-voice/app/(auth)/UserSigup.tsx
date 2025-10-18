@@ -1,8 +1,5 @@
-import { ApiUrl } from "@/config/ApiUrl";
 import axiosInstance from "@/config/axiosInstance";
-import { getUserDetails } from "@/Redux/Slices/authSlice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import useUserStore from "@/Zustand/store/authStore";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -17,7 +14,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useDispatch } from "react-redux";
+
 
 export default function UserSigup() {
   const [userName, setUserName] = useState("");
@@ -26,7 +23,7 @@ export default function UserSigup() {
   const [passwordVisible, setPasswordVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const dispatch = useDispatch();
+  const { setToken } = useUserStore();
 
   const handleSigup = async () => {
     try {
@@ -43,9 +40,8 @@ export default function UserSigup() {
       if (response.status === 200) {
         Alert.alert("Success", "Signup successful");
         // Save token
-        dispatch(getUserDetails(response.data.user));
         const token = response.data.token;
-        await AsyncStorage.setItem("userToken", token);
+        setToken(token);
         router.replace("/(tabs)");
         setEmail("");
         setPassword("");

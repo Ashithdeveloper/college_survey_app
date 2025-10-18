@@ -10,14 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-import { useDispatch } from "react-redux";
-import { getUserDetails } from "@/Redux/Slices/authSlice";
 import axiosInstance from "@/config/axiosInstance";
-import { ActivityIndicator } from "react-native";
+import useUserStore from "@/Zustand/store/authStore";
 
 
 export default function Login() {
@@ -27,7 +23,7 @@ export default function Login() {
   const [ loading  , setLoading] = useState(false);
   const [ error, setError] = useState("");
    const router = useRouter();
-   const dispatch = useDispatch();
+   const { setToken  } = useUserStore();
    //Login Function 
   const handleLogin = async () => {
     try {
@@ -47,9 +43,8 @@ export default function Login() {
       if (response.status === 200) {
         Alert.alert("Success", "Login successful");
         // Save token
-        dispatch(getUserDetails(response.data.user));
         const token = response.data.token;
-        await AsyncStorage.setItem("userToken", token);
+        setToken(token);
         router.replace("/(tabs)");
         setEmail("");
         setPassword("");

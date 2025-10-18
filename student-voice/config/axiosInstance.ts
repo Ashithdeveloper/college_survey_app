@@ -1,6 +1,6 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiUrl } from "./ApiUrl";
+import useUserStore from "@/Zustand/store/authStore";
 
 
 const axiosInstance = axios.create({
@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 // Add a request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("userToken");
+    const token = useUserStore.getState().token; 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

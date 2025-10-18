@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import axiosInstance from "@/config/axiosInstance";
 import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import useQuestionStore from "@/Zustand/store/question";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -21,9 +22,8 @@ export default function MyBarChart() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const collegename = useSelector(
-    (state: any) => state.resultCollege.collegename
-  );
+  const { collegename } = useQuestionStore();
+   
   console.log("Selected college:", collegename);
 
   const fetchResult = async () => {

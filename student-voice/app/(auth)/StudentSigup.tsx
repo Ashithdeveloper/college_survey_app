@@ -15,10 +15,9 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import * as ImagePicker from "expo-image-picker";
 import { Picker } from "@react-native-picker/picker";
 import { CollegeName } from "@/config/CollegeName";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
-import { getUserDetails } from "@/Redux/Slices/authSlice";
 import axiosInstance from "@/config/axiosInstance";
+import useUserStore from "@/Zustand/store/authStore";
 
 
 export default function StudentSignup() {
@@ -31,9 +30,10 @@ export default function StudentSignup() {
   const [image, setImage] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { setToken} = useUserStore();
 
   const router = useRouter();
-  const dispatch = useDispatch();
+
 
   // Pick ID card image
   const pickImage = async () => {
@@ -117,10 +117,8 @@ export default function StudentSignup() {
 
       if (response.status === 201) {
         Alert.alert("Success", "Signup successful");
-        dispatch(getUserDetails(response.data.user));
-        await AsyncStorage.setItem("userToken", response.data.token);
+        setToken(response.data.token);
         router.replace("/(tabs)");
-
         // Reset form
         setName("");
         setCollegeId("");
