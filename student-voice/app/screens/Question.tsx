@@ -11,6 +11,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { useRouter } from "expo-router";
 import axiosInstance from "@/config/axiosInstance";
 import useQuestionStore from "@/Zustand/store/question";
+import { Ionicons } from "@expo/vector-icons";
 
 interface Answer {
   question: string;
@@ -122,6 +123,9 @@ export default function QuestionScreen() {
     inputRange: [0, 1],
     outputRange: ["0%", "100%"],
   });
+  const backToHome = () => {
+    router.replace("/(tabs)");
+  };
 
   return (
     <KeyboardAwareScrollView
@@ -130,6 +134,17 @@ export default function QuestionScreen() {
       extraScrollHeight={120}
       className="flex-1 bg-white"
     >
+      <View className="flex-row justify-between items-center p-4 bg-white shadow-md">
+        <TouchableOpacity onPress={backToHome}>
+          <View className="flex-row items-center">
+            <Ionicons name="arrow-back" size={24} color="blue" />
+            <Text className="text-blue-600 text-lg font-semibold ml-2">
+              Back
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       <View className="p-6">
         {/* College Name */}
         <Text className="text-3xl font-bold text-center text-blue-700 mb-6">
