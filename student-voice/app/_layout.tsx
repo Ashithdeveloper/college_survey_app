@@ -11,6 +11,7 @@ import useUserStore from "@/Zustand/store/authStore";
 export default function RootLayout() {
   const router = useRouter();
   const { setUser , token , clearUser  } = useUserStore();
+  
 
   useEffect(() => {
     const getData = async () => {
@@ -40,6 +41,7 @@ export default function RootLayout() {
 
     getData();
   }, [token]);
+  
   return (
     <SafeAreaProvider>
       <SafeAreaView
