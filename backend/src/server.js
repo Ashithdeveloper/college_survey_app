@@ -5,6 +5,8 @@ import UserRouter from "./Router/user.route.js";
 import dotenv from "dotenv";
 import QuestionRouter from "./Router/question.route.js";
 import job from "./config/cors.js";
+import postRoute from "./Router/post.route.js";
+import mentorai from "./Router/mentorChart.routes.js";
 
 dotenv.config();
 
@@ -15,13 +17,16 @@ app.use(express.json());
 
 app.use("/api/user", UserRouter);
 app.use("/api/questions", QuestionRouter);
+app.use("/api/mentorchart", mentorai);
+app.use("/api/post", postRoute);
+
 job.start();
 
 app.get("/", (req, res) => res.send("Server is running"));
 
 
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 connectDB()
   .then(() => {
