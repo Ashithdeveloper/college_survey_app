@@ -9,7 +9,6 @@ configDotenv();
 
 const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-
 export const generatequestion = async (collegename) => {
   try {
     if (!collegename) throw new Error("Please enter collegename");
@@ -129,8 +128,6 @@ export const getallCollege = async (req, res) => {
   }
 };
 
-
-
 export const getquestion = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -145,21 +142,17 @@ export const getquestion = async (req, res) => {
     const question = await Question.findOne({ collegename });
 
     if (!question) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Questions not found for this college",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Questions not found for this college",
+      });
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Questions fetched successfully",
-        question,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Questions fetched successfully",
+      question,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: error.message });
@@ -184,20 +177,20 @@ export const saveAnswer = async (req, res) => {
         .json({ success: false, message: "All fields are required." });
     }
     // student can only submit answers once every 6 months
-     const lastAnswer = await Answer.findOne({ userId, collegename }).sort({
-       createdAt: -1,
-     });
-     if (lastAnswer) {
-       const sixMonthsAgo = new Date();
-       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const lastAnswer = await Answer.findOne({ userId, collegename }).sort({
+      createdAt: -1,
+    });
+    if (lastAnswer) {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-       if (lastAnswer.createdAt > sixMonthsAgo) {
-         return res.status(200).json({
-           success: true,
-           message: "You can only submit answers once every 6 months.",
-         });
-       }
-     }
+      if (lastAnswer.createdAt > sixMonthsAgo) {
+        return res.status(200).json({
+          success: true,
+          message: "You can only submit answers once every 6 months.",
+        });
+      }
+    }
 
     const newAnswer = new Answer({
       userId,
@@ -228,5 +221,3 @@ export const listModels = async () => {
     console.error("Error listing models:", error);
   }
 };
-
-

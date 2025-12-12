@@ -1,17 +1,42 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import useUserStore from "@/Zustand/store/authStore";
 
 export default function Dashboard() {
-  const { user } = useUserStore()
+  const { user } = useUserStore();
+  const router = useRouter();
+
+  const navigateToPage = (page: string) => {
+    switch (page) {
+      case "activeSurveys":
+        router.navigate("/home");
+        break;
+      case "results":
+        router.navigate("/Rank");
+        break;
+      case "aiMentorChat":
+        router.push("/screens/MentorChat");
+        break;
+      case "community":
+        // router.navigate("/community");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.greeting}>Hi, {user?.name} 👋</Text>
 
       <View style={styles.cardContainer}>
         {/* Active Surveys */}
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigateToPage("activeSurveys")}
+        >
           <View style={styles.cardHeader}>
             <Ionicons name="newspaper" size={24} color="#1DA1F2" />
             <Text style={styles.cardTitle}>Active Surveys</Text>
@@ -20,18 +45,24 @@ export default function Dashboard() {
         </TouchableOpacity>
 
         {/* Results */}
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigateToPage("results")}
+        >
           <View style={styles.cardHeader}>
             <Ionicons name="bar-chart" size={24} color="#10B981" />
             <Text style={styles.cardTitle}>Results</Text>
           </View>
           <Text style={styles.cardSubtitle}>
-            View your recent survey results .
+            View your recent survey results.
           </Text>
         </TouchableOpacity>
 
         {/* AI Mentor Chat */}
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigateToPage("aiMentorChat")}
+        >
           <View style={styles.cardHeader}>
             <Ionicons name="chatbubble-ellipses" size={24} color="#6366F1" />
             <Text style={styles.cardTitle}>AI Mentor Chat</Text>
@@ -42,7 +73,10 @@ export default function Dashboard() {
         </TouchableOpacity>
 
         {/* Community Discussions */}
-        <TouchableOpacity style={styles.card}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => navigateToPage("community")}
+        >
           <View style={styles.cardHeader}>
             <Ionicons name="people" size={24} color="#F59E0B" />
             <Text style={styles.cardTitle}>Community Discussions</Text>

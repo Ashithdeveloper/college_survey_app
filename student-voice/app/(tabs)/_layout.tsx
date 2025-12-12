@@ -55,7 +55,7 @@ export default function TabsLayout() {
           }}
         />
         <TopTabs.Screen
-          name="Survey"
+          name="home"
           component={Home}
           options={{
             tabBarLabel: "Survey",
