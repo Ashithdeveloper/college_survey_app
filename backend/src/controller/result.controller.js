@@ -10,7 +10,7 @@ const genai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const getresult = async (collegename , userId) => {
   try {
-    // 1️⃣ Guard: collegename required
+    // 1️ Guard: collegename required
     if (!collegename) {
       return res.status(400).json({
         success: false,
@@ -21,7 +21,7 @@ export const getresult = async (collegename , userId) => {
     console.log("Selected college:", collegename);
     console.log("User ID:", userId);
 
-    // 2️⃣ Fetch answers from DB
+    // 2️ Fetch answers from DB
     const allAnswers = await Answer.find({ collegename });
     console.log("Fetched answers from DB:", allAnswers);
     if (!allAnswers || allAnswers.length === 0) {
@@ -31,7 +31,7 @@ export const getresult = async (collegename , userId) => {
       });
     }
 
-    // 3️⃣ Prepare answers for AI prompt
+    // 3️ Prepare answers for AI prompt
     const answersText = allAnswers
       .map(
         (ans, index) =>
@@ -60,7 +60,7 @@ export const getresult = async (collegename , userId) => {
       }
     `;
 
-    // 4️⃣ Call Google Generative AI
+    // 4️ Call Google Generative AI
     let aiResponseText;
     try {
       const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -79,7 +79,7 @@ export const getresult = async (collegename , userId) => {
       });
     }
 
-    // 5️⃣ Extract JSON safely
+    // 5️ Extract JSON safely
     const firstBrace = aiResponseText.indexOf("{");
     const lastBrace = aiResponseText.lastIndexOf("}");
     if (firstBrace === -1 || lastBrace === -1) {
@@ -110,10 +110,10 @@ export const getresult = async (collegename , userId) => {
       });
     }
     const existing = await resultsave.findOne({ collegename });
-    // 5️⃣ Save to DB
+    // 5️ Save to DB
     
    if (existing) {
-     // ✅ Update the single results object
+     //  Update the single results object
      existing.results = {
        mental_health: ratings.mental_health,
        placement_training: ratings.placement_training,
@@ -122,14 +122,14 @@ export const getresult = async (collegename , userId) => {
        overall_explanation: ratings.overall_explanation,
      };
 
-     // ✅ Add the student if not already included
+     //  Add the student if not already included
      if (!existing.student.includes(userId)) {
        existing.student.push(userId);
      }
 
      await existing.save();
    } else {
-     // ✅ Create a new result document for this college
+     //  Create a new result document for this college
      await resultsave.create({
        collegename,
        results: {
@@ -142,7 +142,7 @@ export const getresult = async (collegename , userId) => {
        student: [userId],
      });
    }
-    // 6️⃣ Return result
+    // 6️ Return result
     return console.log("Ratings:", ratings);
     // await saveResult( ratings.mental_health, ratings.placement_training, ratings.skill_training, ratings.total_score_college, collegename, req.user.id);
   } catch (error) {

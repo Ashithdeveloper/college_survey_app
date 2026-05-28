@@ -94,7 +94,7 @@ If any field is not needed, return null or [] instead.
       };
     }
 
-    // ✅ Create MentorChart document
+    //  Create MentorChart document
     const mentorChart = new MentorChart({
       userId,
       prompt,
@@ -142,14 +142,14 @@ export const scheduleMentorAI = async (req, res) => {
     const userId = req.user?.id;
     const { topic } = req.body;
 
-    // 1️⃣ Validate input
+    // 1️ Validate input
     if (!topic) {
       return res
         .status(400)
         .json({ message: "Topic is required", success: false });
     }
 
-    // 2️⃣ Fetch user info
+    // 2 Fetch user info
     const user = await User.findById(userId).select("-password");
     if (!user) {
       return res
@@ -157,7 +157,7 @@ export const scheduleMentorAI = async (req, res) => {
         .json({ message: "User not found", success: false });
     }
 
-    // 3️⃣ Fetch previous mentor context
+    // 3️ Fetch previous mentor context
     const previousMentorData = await MentorChart.find({ userId }).sort({
       createdAt: -1,
     });
@@ -165,7 +165,7 @@ export const scheduleMentorAI = async (req, res) => {
       .map((p, i) => `#${i + 1} Prompt: ${p.prompt}\nResponse: ${p.aiResponse}`)
       .join("\n\n");
 
-    // 4️⃣ Construct Gemini prompt
+    // 4️ Construct Gemini prompt
     const fullPrompt = `
 You are an expert AI Mentor creating a personalized, structured day-by-day learning schedule.
 
@@ -193,12 +193,12 @@ Based on the topic: "${topic}", create a daily learning schedule in **valid JSON
 }
 `;
 
-    // 5️⃣ Call Gemini API
+    // 5️ Call Gemini API
     const model = genai.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(fullPrompt);
     const aiText = result.response.text();
 
-    // 6️⃣ Parse Gemini JSON safely
+    // 6️ Parse Gemini JSON safely
     let parsedOutput;
     try {
       // Extract JSON between ```json and ```
@@ -218,7 +218,7 @@ Based on the topic: "${topic}", create a daily learning schedule in **valid JSON
       };
     }
 
-    // 7️⃣ Save schedule to LearningSchedule collection
+    // 7️ Save schedule to LearningSchedule collection
     const savedSchedule = await LearningSchedule.create({
       userId,
       topic: parsedOutput.topic || topic,
@@ -229,7 +229,7 @@ Based on the topic: "${topic}", create a daily learning schedule in **valid JSON
       aiResponse: aiText,
     });
 
-    // 8️⃣ Save context in MentorChart collection
+    // 8️ Save context in MentorChart collection
     const youtubeLinks =
       parsedOutput.schedule?.flatMap((s) => s.resources || []) || [];
 
@@ -241,7 +241,7 @@ Based on the topic: "${topic}", create a daily learning schedule in **valid JSON
       youtubeLinks,
     });
 
-    // 9️⃣ Return response
+    // 9️ Return response
     return res.status(201).json({
       message: "Learning schedule created and saved successfully",
       success: true,

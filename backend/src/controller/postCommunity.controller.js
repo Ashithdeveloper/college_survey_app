@@ -4,30 +4,30 @@ import User from "../models/user.model.js";
 
 export const createPost = async (req, res) => {
   try {
-    // 1️⃣ Get the logged-in user's ID
+    // 1️ Get the logged-in user's ID
     const userId = req.user?.id;
 
-    // 2️⃣ Extract post details from request body
+    // 2️ Extract post details from request body
     const { text, media } = req.body;
 
-    // 3️⃣ Validate required fields
+    // 3️ Validate required fields
     if (!text && !media) {
       return res
         .status(400)
         .json({ message: "Text or media is required", success: false });
     }
 
-    // 4️⃣ Create a new post document
+    // 4️ Create a new post document
     const post = new Post({
       user: userId,
       text,
       media: media || null,
     });
 
-    // 5️⃣ Save the post to MongoDB
+    // 5️ Save the post to MongoDB
     await post.save();
 
-    // 6️⃣ Return success response
+    // 6️ Return success response
     return res.status(201).json({
       message: "Post created successfully",
       success: true,
@@ -45,7 +45,7 @@ export const likeOrUnlikePost = async (req, res) => {
     const userId = req.user?.id;
     const { id: postId } = req.params;
 
-    // 1️⃣ Find the post by ID
+    // 1️ Find the post by ID
     const post = await Post.findById(postId);
     if (!post) {
       return res
@@ -53,18 +53,18 @@ export const likeOrUnlikePost = async (req, res) => {
         .json({ message: "Post not found", success: false });
     }
 
-    // 2️⃣ Check if the user already liked the post
+    // 2️ Check if the user already liked the post
     const alreadyLiked = post.likes.includes(userId);
 
     if (alreadyLiked) {
-      // 3️⃣ If already liked, remove user from likes array (unlike)
+      // 3️ If already liked, remove user from likes array (unlike)
       post.likes = post.likes.filter((id) => id.toString() !== userId);
       await post.save();
       return res
         .status(200)
         .json({ message: "Post unliked", success: true, post });
     } else {
-      // 4️⃣ Otherwise, add the user to likes array (like)
+      // 4️ Otherwise, add the user to likes array (like)
       post.likes.push(userId);
       await post.save();
       return res
@@ -84,14 +84,14 @@ export const addComment = async (req, res) => {
     const { id: postId } = req.params;
     const { text } = req.body;
 
-    // 1️⃣ Validate comment text
+    // 1️ Validate comment text
     if (!text || text.trim() === "") {
       return res
         .status(400)
         .json({ message: "Comment text is required", success: false });
     }
 
-    // 2️⃣ Find the post by ID
+    // 2️ Find the post by ID
     const post = await Post.findById(postId).populate("user", "name isVerified ,role");
     if (!post) {
       return res
@@ -99,17 +99,17 @@ export const addComment = async (req, res) => {
         .json({ message: "Post not found", success: false });
     }
 
-    // 3️⃣ Create a new comment object
+    // 3️ Create a new comment object
     const comment = {
       user: userId,
       text: text.trim(),
     };
 
-    // 4️⃣ Add comment to post
+    // 4️ Add comment to post
     post.comments.push(comment);
     await post.save();
 
-    // 5️⃣ Return updated post
+    // 5️ Return updated post
     return res.status(201).json({
       message: "Comment added successfully",
       success: true,
