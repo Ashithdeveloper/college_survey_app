@@ -4,7 +4,7 @@ import connectDB from "./db/Database.js";
 import UserRouter from "./Router/user.route.js";
 import dotenv from "dotenv";
 import QuestionRouter from "./Router/question.route.js";
-import job from "./config/cors.js";
+// import job from "./config/cors.js";
 import postRoute from "./Router/post.route.js";
 import mentorai from "./Router/mentorChart.routes.js";
 
@@ -20,7 +20,7 @@ app.use("/api/questions", QuestionRouter);
 app.use("/api/mentorchart", mentorai);
 app.use("/api/post", postRoute);
 
-job.start();
+// job.start();
 
 app.get("/", (req, res) => res.send("Server is running"));
 
