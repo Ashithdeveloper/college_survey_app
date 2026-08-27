@@ -3,6 +3,36 @@
 
 ---
 
+## 📑 Table of Contents
+
+- [📌 Overview](#-overview)
+  - [🎯 Platform Benefits](#-platform-benefits)
+- [🚨 Problem Statement](#-problem-statement)
+- [💡 Proposed Solution](#-proposed-solution)
+- [📱 Application Screenshots](#-application-screenshots)
+  - [🔐 Authentication & Onboarding](#-authentication--onboarding)
+  - [📋 Student Dashboard & Dynamic AI Surveys](#-student-dashboard--dynamic-ai-surveys)
+  - [📊 AI Analytics & Performance Insights](#-ai-analytics--performance-insights)
+  - [🏆 Rankings & Verified Profile](#-rankings--verified-profile)
+- [🏗️ System Architecture](#️-system-architecture)
+  - [1️⃣ Student Interface](#1️⃣-student-interface)
+  - [2️⃣ Backend Server](#2️⃣-backend-server)
+  - [3️⃣ AI Engine](#3️⃣-ai-engine)
+  - [4️⃣ Database Layer](#4️⃣-database-layer)
+  - [5️⃣ Analytics Module](#5️⃣-analytics-module)
+  - [6️⃣ College Admin Panel](#6️⃣-college-admin-panel)
+  - [7️⃣ Public User Module](#7️⃣-public-user-module)
+- [📊 Feedback Parameters](#-feedback-parameters)
+- [🤖 AI Features](#-ai-features)
+- [🔐 Privacy & Security](#-privacy--security)
+- [👥 User Roles](#-user-roles)
+- [🌐 Technology Stack](#-technology-stack)
+- [📈 Project Impact](#-project-impact)
+- [🚀 Future Enhancements](#-future-enhancements)
+- [🏁 Conclusion](#-conclusion)
+
+---
+
 ## 📌 Overview  
 
 Student-Voice is an AI-driven platform designed to replace the traditional college feedback system with a secure, anonymous, and intelligent ecosystem.
