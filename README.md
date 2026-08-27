@@ -47,6 +47,30 @@ Student-Voice introduces:
 
 ---
 
+## 📱 Application Screenshots
+
+### 🔐 Authentication & Onboarding
+| Login Screen | Student Signup (Face/ID Verification) | Public User Signup |
+| :---: | :---: | :---: |
+| <img src="screenshot/Screenshot_2025-12-12-20-12-42-906_host.exp.exponent.jpg" width="240" alt="Login Screen" /> | <img src="screenshot/Screenshot_2025-12-12-20-12-48-847_host.exp.exponent.jpg" width="240" alt="Student Signup" /> | <img src="screenshot/Screenshot_2025-12-12-20-12-56-109_host.exp.exponent.jpg" width="240" alt="User Signup" /> |
+
+### 📋 Student Dashboard & Dynamic AI Surveys
+| Student Dashboard | Survey College Selection | Dynamic AI Survey Question |
+| :---: | :---: | :---: |
+| <img src="screenshot/Screenshot_2025-12-12-20-12-22-119_host.exp.exponent.jpg" width="240" alt="Student Dashboard" /> | <img src="screenshot/Screenshot_2025-12-12-20-11-54-778_host.exp.exponent.jpg" width="240" alt="Survey Selection" /> | <img src="screenshot/Screenshot_2025-12-12-20-12-01-342_host.exp.exponent.jpg" width="240" alt="Dynamic Questions" /> |
+
+### 📊 AI Analytics & Performance Insights
+| Performance Overview Chart | AI Insights & Detailed Explanation |
+| :---: | :---: |
+| <img src="screenshot/Screenshot_2025-12-12-20-12-10-570_host.exp.exponent.jpg" width="240" alt="Performance Overview" /> | <img src="screenshot/Screenshot_2025-12-12-20-12-13-428_host.exp.exponent.jpg" width="240" alt="AI Insights" /> |
+
+### 🏆 Rankings & Verified Profile
+| College Rankings Leaderboard | Verified Student Profile |
+| :---: | :---: |
+| <img src="screenshot/Screenshot_2025-12-12-20-11-47-895_host.exp.exponent.jpg" width="240" alt="College Rankings" /> | <img src="screenshot/Screenshot_2025-12-12-20-12-26-785_host.exp.exponent.jpg" width="240" alt="Verified Profile" /> |
+
+---
+
 ## 🏗️ System Architecture  
 
 ### 1️⃣ Student Interface
